@@ -1,0 +1,18 @@
+FROM node:lts
+
+# use development environment
+ENV NODE_ENV=development
+
+WORKDIR /app
+
+# install packages
+COPY package*.json ./
+RUN npm install
+
+# copy source files
+COPY . .
+
+EXPOSE 3000
+
+# start react
+CMD ["npm", "start"]

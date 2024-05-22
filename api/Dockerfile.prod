@@ -1,0 +1,18 @@
+FROM node:lts
+
+# use production environment
+ENV NODE_ENV=production
+
+WORKDIR /api
+
+# install packages
+COPY package*.json ./
+RUN npm install
+
+# copy source files
+COPY . .
+
+EXPOSE 3000
+
+# start node
+CMD ["npm", "start"]
