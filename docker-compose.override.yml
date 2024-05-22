@@ -2,7 +2,6 @@ services:
   app:
     build:
       dockerfile: Dockerfile.dev
-    ports: ["8080:${PORT}"]
 
   api:
     build:

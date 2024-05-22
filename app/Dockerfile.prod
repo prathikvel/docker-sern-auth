@@ -23,7 +23,7 @@ COPY ./proxy/default.conf.template /etc/nginx/templates/default.conf.template
 # copy build files
 COPY --from=builder /app/build /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 8080
 
 # start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -3,7 +3,7 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile.prod
-    ports: ["80:${PORT}"]
+    ports: ["8080:${PORT}"]
     volumes:
       - ./app/src:/app/src
     env_file: [".env"]
