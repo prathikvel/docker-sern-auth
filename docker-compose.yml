@@ -22,4 +22,5 @@ services:
     image: mariadb:lts
     volumes:
       - ./db/data:/var/lib/mysql
+      - ./db/scripts:/docker-entrypoint-initdb.d
     env_file: [".env"]
