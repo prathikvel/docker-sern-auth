@@ -7,3 +7,7 @@ export interface Database {
   role: RoleTable;
   user_role: UserRoleTable;
 }
+
+export { Role, NewRole, RoleUpdate } from "./role.model";
+export { User, NewUser, UserUpdate } from "./user.model";
+export { UserRole, NewUserRole, UserRoleUpdate } from "./userRole.model";
