@@ -10,7 +10,7 @@ const columns = ["rol_id", "rol_name", "rol_created"] as const;
  *
  * @param criterion The column name
  * @param criterionValue The value of the criterion
- * @returns The role or undefined if the given `value` is invalid
+ * @returns The role or undefined if the given `criterionValue` is invalid
  */
 const findRole = async <K extends keyof Role>(
   criterion: K,

@@ -22,7 +22,7 @@ const roleColumns = (eb: ExpressionBuilder<Database, "user_role">) => {
  * @param criterion The column name
  * @param criterionValue The value of the criterion
  * @param withPassword If the return object includes `usr_password`
- * @returns The user or undefined if the given `value` is invalid
+ * @returns The user or undefined if the given `criterionValue` is invalid
  */
 const findUser = async <K extends keyof User>(
   criterion: K,
