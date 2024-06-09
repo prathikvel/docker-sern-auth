@@ -2,7 +2,7 @@ import { db } from "../config/database";
 import { UserRole, NewUserRole, UserRoleUpdate } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to compare, including all userRole columns. */
+/** The columns to filter, including all userRole columns. */
 const columns = ["url_usr_id", "url_rol_id", "url_created"] as const;
 
 /**

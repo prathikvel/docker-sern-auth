@@ -2,7 +2,7 @@ import { db } from "../config/database";
 import { Permission, NewPermission, PermissionUpdate } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to compare, including all permission columns. */
+/** The columns to filter, including all permission columns. */
 const columns = ["per_id", "per_name", "per_created"] as const;
 
 /**

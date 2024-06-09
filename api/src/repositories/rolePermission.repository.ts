@@ -6,7 +6,7 @@ import {
 } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to compare, including all rolePermission columns. */
+/** The columns to filter, including all rolePermission columns. */
 const columns = ["rlp_rol_id", "rlp_per_id", "rlp_created"] as const;
 
 /**
