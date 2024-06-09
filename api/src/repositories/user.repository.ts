@@ -5,16 +5,33 @@ import { db } from "../config/database";
 import { Database, Role, User, NewUser, UserUpdate } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to select, including all user columns except `usr_password`. */
-const userColumns = ["usr_id", "usr_name", "usr_email", "usr_created"] as const;
+/** The columns to filter, including all user columns, except `usr_password`,
+ * and the `rol_id` and `rol_name` role columns. */
+const columnsToFilter = [
+  "usr_id",
+  "usr_name",
+  "usr_email",
+  "usr_created",
+  "rol_id",
+  "rol_name",
+] as const;
 
-/** The columns to select, including the `rol_id` & `rol_name` role columns. */
-const roleColumns = (eb: ExpressionBuilder<Database, "user_role">) => {
-  return eb
-    .selectFrom("role")
-    .select(["rol_id", "rol_name"])
-    .whereRef("rol_id", "=", "url_rol_id");
-};
+/** The columns to select, including all user columns, except `usr_password`,
+ * and the `rol_id` and `rol_name` role columns. */
+const columnsToSelect = [
+  "usr_id",
+  "usr_name",
+  "usr_email",
+  "usr_created",
+  (eb: ExpressionBuilder<Database, "user_role">) => {
+    return jsonArrayFrom(
+      eb
+        .selectFrom("role")
+        .select(["rol_id", "rol_name"])
+        .whereRef("rol_id", "=", "url_rol_id")
+    ).as("roles");
+  },
+] as const;
 
 /**
  * The generic function to find a user based on a criterion.
@@ -35,9 +52,8 @@ const findUser = async <K extends keyof User>(
     .where(criterion, "=", criterionValue as any);
 
   return await query
-    .select(userColumns)
+    .select(columnsToSelect)
     .$if(withPassword, (qb) => qb.select("usr_password"))
-    .select((eb) => jsonArrayFrom(roleColumns(eb)).as("roles"))
     .executeTakeFirst();
 };
 
@@ -80,19 +96,11 @@ export const findUserByEmailWithPassword = (email: string) =>
 export const findUsers = async (criteria: Partial<User & Role> = {}) => {
   const query = db
     .selectFrom("user_role")
+    .leftJoin("role", "rol_id", "url_rol_id")
     .rightJoin("user", "usr_id", "url_usr_id")
-    .where((eb) => eb.and(pick(criteria, userColumns)));
+    .where((eb) => eb.and(pick(criteria, columnsToFilter)));
 
-  return await query
-    .select(userColumns)
-    .select((eb) =>
-      jsonArrayFrom(
-        roleColumns(eb).where((eb) =>
-          eb.and(pick(criteria, ["rol_id", "rol_name"]))
-        )
-      ).as("roles")
-    )
-    .execute();
+  return await query.select(columnsToSelect).execute();
 };
 
 /**
