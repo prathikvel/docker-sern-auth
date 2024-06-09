@@ -19,7 +19,7 @@ services:
     depends_on: [db]
 
   db:
-    image: mariadb:lts
+    image: mysql:lts
     volumes:
       - ./db/data:/var/lib/mysql
       - ./db/scripts:/docker-entrypoint-initdb.d
