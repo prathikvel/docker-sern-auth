@@ -34,7 +34,7 @@ const findUser = async <K extends keyof User>(
     .rightJoin("user", "usr_id", "url_usr_id")
     .where(criterion, "=", criterionValue as any);
 
-  return query
+  return await query
     .select(userColumns)
     .$if(withPassword, (qb) => qb.select("usr_password"))
     .select((eb) => jsonArrayFrom(roleColumns(eb)).as("roles"))
