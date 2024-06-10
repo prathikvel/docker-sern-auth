@@ -5,30 +5,25 @@ import { db } from "../config/database";
 import { Database, Role, User, NewUser, UserUpdate } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to filter, including all user columns, except `usr_password`,
- * and the `rol_id` and `rol_name` role columns. */
-const columnsToFilter = [
-  "usr_id",
-  "usr_name",
-  "usr_email",
-  "usr_created",
-  "rol_id",
-  "rol_name",
-] as const;
+/** The user columns to select/filter, including all the user columns except
+ * `usr_password`. */
+const userColumns = ["usr_id", "usr_name", "usr_email", "usr_created"] as const;
+
+/** The role columns to select/filter, including the `rol_id` and `rol_name`
+ * role columns. */
+const roleColumns = ["rol_id", "rol_name"] as const;
 
 /** The columns to select, including all user columns, except `usr_password`,
  * and the `rol_id` and `rol_name` role columns. */
 const columnsToSelect = [
-  "usr_id",
-  "usr_name",
-  "usr_email",
-  "usr_created",
-  (eb: ExpressionBuilder<Database, "user_role">) => {
+  ...userColumns,
+  (eb: ExpressionBuilder<Database, "user">) => {
     return jsonArrayFrom(
       eb
-        .selectFrom("role")
-        .select(["rol_id", "rol_name"])
-        .whereRef("rol_id", "=", "url_rol_id")
+        .selectFrom("user_role")
+        .whereRef("url_usr_id", "=", "usr_id")
+        .innerJoin("role", "rol_id", "url_rol_id")
+        .select(roleColumns)
     ).as("roles");
   },
 ] as const;
@@ -47,8 +42,7 @@ const findUser = async <K extends keyof User>(
   withPassword: boolean = false
 ) => {
   const query = db
-    .selectFrom("user_role")
-    .rightJoin("user", "usr_id", "url_usr_id")
+    .selectFrom("user")
     .where(criterion, "=", criterionValue as any);
 
   return await query
@@ -94,11 +88,26 @@ export const findUserByEmailWithPassword = (email: string) =>
  * @returns An array of users, and their roles, that match the given criteria
  */
 export const findUsers = async (criteria: Partial<User & Role> = {}) => {
-  const query = db
-    .selectFrom("user_role")
-    .leftJoin("role", "rol_id", "url_rol_id")
-    .rightJoin("user", "usr_id", "url_usr_id")
-    .where((eb) => eb.and(pick(criteria, columnsToFilter)));
+  let query = db
+    .selectFrom("user")
+    .where((eb) => eb.and(pick(criteria, userColumns)));
+
+  const withRoleCriteria = roleColumns.some((v) => Object.hasOwn(criteria, v));
+
+  if (withRoleCriteria) {
+    query = query.where((eb) =>
+      eb(
+        "usr_id",
+        "in",
+        eb
+          .selectFrom("user_role")
+          .whereRef("url_usr_id", "=", "usr_id")
+          .innerJoin("role", "rol_id", "url_rol_id")
+          .where((eb) => eb.and(pick(criteria, roleColumns)))
+          .select("url_usr_id")
+      )
+    );
+  }
 
   return await query.select(columnsToSelect).execute();
 };

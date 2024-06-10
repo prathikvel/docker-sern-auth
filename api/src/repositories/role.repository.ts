@@ -5,28 +5,24 @@ import { db } from "../config/database";
 import { Database, Permission, Role, NewRole, RoleUpdate } from "../models";
 import { pick } from "../utils/object.util";
 
-/** The columns to filter, including all role columns and the `per_id` and
+/** The role columns to select/filter, including all role columns. */
+const roleColumns = ["rol_id", "rol_name", "rol_created"] as const;
+
+/** The permission columns to select/filter, including the `per_id` and
  * `per_name` permission columns. */
-const columnsToFilter = [
-  "rol_id",
-  "rol_name",
-  "rol_created",
-  "per_id",
-  "per_name",
-] as const;
+const permissionColumns = ["per_id", "per_name"] as const;
 
 /** The columns to select, including all role columns and the `per_id` and
  * `per_name` permission columns. */
 const columnsToSelect = [
-  "rol_id",
-  "rol_name",
-  "rol_created",
-  (eb: ExpressionBuilder<Database, "role_permission">) => {
+  ...roleColumns,
+  (eb: ExpressionBuilder<Database, "role">) => {
     return jsonArrayFrom(
       eb
-        .selectFrom("permission")
-        .select(["per_id", "per_name"])
-        .whereRef("per_id", "=", "rlp_per_id")
+        .selectFrom("role_permission")
+        .whereRef("rlp_rol_id", "=", "rol_id")
+        .innerJoin("permission", "per_id", "rlp_per_id")
+        .select(permissionColumns)
     ).as("permissions");
   },
 ] as const;
@@ -43,8 +39,7 @@ const findRole = async <K extends keyof Role>(
   criterionValue: Role[K]
 ) => {
   const query = db
-    .selectFrom("role_permission")
-    .rightJoin("role", "rol_id", "rlp_rol_id")
+    .selectFrom("role")
     .where(criterion, "=", criterionValue as any);
 
   return await query.select(columnsToSelect).executeTakeFirst();
@@ -75,11 +70,28 @@ export const findRoleByName = (name: string) => findRole("rol_name", name);
  * @returns An array of roles, and their permissions, that match given criteria
  */
 export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
-  const query = db
-    .selectFrom("role_permission")
-    .rightJoin("role", "rol_id", "rlp_rol_id")
-    .leftJoin("permission", "per_id", "rlp_per_id")
-    .where((eb) => eb.and(pick(criteria, columnsToFilter)));
+  let query = db
+    .selectFrom("role")
+    .where((eb) => eb.and(pick(criteria, roleColumns)));
+
+  const withPermissionCriteria = permissionColumns.some((v) =>
+    Object.hasOwn(criteria, v)
+  );
+
+  if (withPermissionCriteria) {
+    query = query.where((eb) =>
+      eb(
+        "rol_id",
+        "in",
+        eb
+          .selectFrom("role_permission")
+          .whereRef("rlp_rol_id", "=", "rol_id")
+          .innerJoin("permission", "per_id", "rlp_per_id")
+          .where((eb) => eb.and(pick(criteria, permissionColumns)))
+          .select("rlp_rol_id")
+      )
+    );
+  }
 
   return await query.select(columnsToSelect).execute();
 };
