@@ -9,6 +9,5 @@
     "moduleResolution": "node16",
     "outDir": "build"
   },
-  "include": ["src/**/*"],
-  "exclude": ["**/*.test.ts"]
+  "include": ["src/**/*"]
 }
