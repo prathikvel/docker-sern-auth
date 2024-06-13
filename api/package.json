@@ -22,7 +22,7 @@
   "scripts": {
     "prestart": "npm run build",
     "start": "node build/index.js",
-    "build": "tsc --p tsconfig.prod.json",
+    "build": "tsc -p tsconfig.prod.json",
     "dev": "nodemon --watch src src/index.ts",
     "test": "jest --run-in-band --watch-all",
     "coverage": "jest --coverage"
