@@ -2,19 +2,19 @@ services:
   app:
     build:
       context: ./app
-      dockerfile: Dockerfile.prod
+      target: prod
     ports: ["8080:${PORT}"]
     volumes:
-      - ./app/src:/app/src
+      - ./app/src:/home/node/src
     env_file: [".env"]
     depends_on: [api]
 
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile.prod
+      target: prod
     volumes:
-      - ./api/src:/api/src
+      - ./api/src:/home/node/src
     env_file: [".env"]
     depends_on: [db]
 
