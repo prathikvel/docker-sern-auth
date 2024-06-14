@@ -16,11 +16,18 @@ services:
     volumes:
       - ./api/src:/home/node/src
     env_file: [".env"]
-    depends_on: [db]
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:lts
     volumes:
       - ./db/data:/var/lib/mysql
       - ./db/scripts:/docker-entrypoint-initdb.d
+      - ./db/healthcheck:/usr/local/bin/healthcheck
     env_file: [".env"]
+    healthcheck:
+      test: bash healthcheck
+      start_period: 30s
+      start_interval: 3s
