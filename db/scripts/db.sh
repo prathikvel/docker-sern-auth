@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # https://github.com/docker-library/mysql/issues/862
-source /usr/local/bin/docker-entrypoint.sh
+source docker-entrypoint.sh
 docker_setup_env mysqld
 mysql_socket_fix
 
