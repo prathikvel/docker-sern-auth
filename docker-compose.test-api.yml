@@ -1,0 +1,7 @@
+services:
+  app:
+    profiles: ["test-api"]
+
+  api:
+    build:
+      target: test
