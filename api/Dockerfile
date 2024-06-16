@@ -10,6 +10,8 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 USER node
 COPY . .
 CMD npm run dev
+HEALTHCHECK --interval=1m --timeout=10s --start-period=30s --start-interval=5s \
+    CMD npx ts-node -T src/healthcheck.ts
 
 FROM base as test
 ENV NODE_ENV=test
@@ -30,3 +32,5 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 USER node
 COPY . .
 CMD npm run start
+HEALTHCHECK --interval=1m --timeout=10s --start-period=30s --start-interval=5s \
+    CMD node build/healthcheck.js
