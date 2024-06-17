@@ -9,7 +9,7 @@ import type {
 export interface PermissionTable {
   per_id: Generated<number>;
   per_name: string;
-  per_created: ColumnType<Date, string | undefined, never>;
+  per_created: ColumnType<Date, Date | undefined, never>;
 }
 
 export type Permission = Selectable<PermissionTable>;

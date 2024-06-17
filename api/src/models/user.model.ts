@@ -11,7 +11,7 @@ export interface UserTable {
   usr_name: string;
   usr_email: string;
   usr_password: string;
-  usr_created: ColumnType<Date, string | undefined, never>;
+  usr_created: ColumnType<Date, Date | undefined, never>;
 }
 
 export type User = Selectable<UserTable>;

@@ -9,7 +9,7 @@ import type {
 export interface RoleTable {
   rol_id: Generated<number>;
   rol_name: string;
-  rol_created: ColumnType<Date, string | undefined, never>;
+  rol_created: ColumnType<Date, Date | undefined, never>;
 }
 
 export type Role = Selectable<RoleTable>;
