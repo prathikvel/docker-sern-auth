@@ -1,9 +1,12 @@
 import { ExpressionBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
-import { db } from "../config/database";
-import { Database, Permission, Role, NewRole, RoleUpdate } from "../models";
-import { pick } from "../utils/object.util";
+import { db } from "@/config/database";
+import { Database } from "@/models";
+import { pick } from "@/utils/object.util";
+
+import { Permission } from "../permission";
+import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
 const roleColumns = ["rol_id", "rol_name", "rol_created"] as const;

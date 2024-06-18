@@ -1,10 +1,11 @@
-import { db } from "../config/database";
+import { db } from "@/config/database";
+import { pick } from "@/utils/object.util";
+
 import {
   RolePermission,
   NewRolePermission,
   RolePermissionUpdate,
-} from "../models";
-import { pick } from "../utils/object.util";
+} from "./role-permission.model";
 
 /** The columns to filter, including all rolePermission columns. */
 const columns = ["rlp_rol_id", "rlp_per_id", "rlp_created"] as const;

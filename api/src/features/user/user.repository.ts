@@ -1,9 +1,12 @@
 import { ExpressionBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
-import { db } from "../config/database";
-import { Database, Role, User, NewUser, UserUpdate } from "../models";
-import { pick } from "../utils/object.util";
+import { db } from "@/config/database";
+import { Database } from "@/models";
+import { pick } from "@/utils/object.util";
+
+import { Role } from "../role";
+import { User, NewUser, UserUpdate } from "./user.model";
 
 /** The user columns to select/filter, including all the user columns except
  * `usr_password`. */

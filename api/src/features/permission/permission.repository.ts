@@ -1,6 +1,11 @@
-import { db } from "../config/database";
-import { Permission, NewPermission, PermissionUpdate } from "../models";
-import { pick } from "../utils/object.util";
+import { db } from "@/config/database";
+import { pick } from "@/utils/object.util";
+
+import {
+  Permission,
+  NewPermission,
+  PermissionUpdate,
+} from "./permission.model";
 
 /** The columns to filter, including all permission columns. */
 const columns = ["per_id", "per_name", "per_created"] as const;
