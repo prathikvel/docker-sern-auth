@@ -1,4 +1,4 @@
-import { Database } from "../models";
+import { Database } from "@/models";
 import { createPool } from "mysql2";
 import { Kysely, MysqlDialect } from "kysely";
 

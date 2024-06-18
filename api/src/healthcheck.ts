@@ -1,5 +1,5 @@
 import { sql } from "kysely";
-import { db } from "./config/database";
+import { db } from "@/config/database";
 
 /** Function that responds to health status. */
 type HealthcheckFn = (healthy: boolean) => never;
