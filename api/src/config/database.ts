@@ -10,14 +10,14 @@ if (NODE_ENV === "test") {
   database = `test_${database}`;
 }
 
+export const pool = createPool({
+  database,
+  host: DB_HOST,
+  user: MYSQL_USER,
+  password: MYSQL_PASSWORD,
+  connectionLimit: 10,
+});
+
 export const db = new Kysely<Database>({
-  dialect: new MysqlDialect({
-    pool: createPool({
-      database,
-      host: DB_HOST,
-      user: MYSQL_USER,
-      password: MYSQL_PASSWORD,
-      connectionLimit: 10,
-    }),
-  }),
+  dialect: new MysqlDialect({ pool }),
 });
