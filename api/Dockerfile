@@ -11,7 +11,7 @@ USER node
 COPY . .
 CMD npm run dev
 HEALTHCHECK --interval=1m --timeout=10s --start-period=30s --start-interval=5s \
-    CMD npx ts-node -T src/healthcheck.ts
+    CMD npx ts-node --transpileOnly -r tsconfig-paths/register src/healthcheck.ts
 
 FROM base as test
 ENV NODE_ENV=test
@@ -33,4 +33,4 @@ USER node
 COPY . .
 CMD npm run start
 HEALTHCHECK --interval=1m --timeout=10s --start-period=30s --start-interval=5s \
-    CMD node build/healthcheck.js
+    CMD node -r tsconfig-paths/register src/healthcheck.js

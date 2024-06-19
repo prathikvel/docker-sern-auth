@@ -9,9 +9,8 @@
     "moduleResolution": "node16",
     "baseUrl": "src",
     "paths": {
-      "@/*": ["./*"]
-    },
-    "outDir": "build"
+      "@/*": ["*"]
+    }
   },
   "include": ["src/**/*"]
 }
