@@ -64,6 +64,16 @@ const findUser = <K extends keyof User>(
 export const findUserById = (id: number) => findUser("usrId", id);
 
 /**
+ * Returns the user and their roles or undefined if the given `id` is invalid.
+ * The return object includes `usrPassword`.
+ *
+ * @param id The user's `usrId`
+ * @returns The user and their roles or undefined if the given `id` is invalid
+ */
+export const findUserByIdWithPassword = (id: number) =>
+  findUser("usrId", id, true);
+
+/**
  * Returns the user and their roles or undefined if the given `email` is invalid.
  * The return object excludes `usrPassword` for security.
  *
