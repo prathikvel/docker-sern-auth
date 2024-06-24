@@ -1,6 +1,6 @@
 import { Database } from "@/models";
 import { createPool } from "mysql2";
-import { Kysely, MysqlDialect } from "kysely";
+import { Kysely, MysqlDialect, CamelCasePlugin } from "kysely";
 
 const { NODE_ENV, DB_HOST, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD } =
   process.env;
@@ -20,4 +20,5 @@ export const pool = createPool({
 
 export const db = new Kysely<Database>({
   dialect: new MysqlDialect({ pool }),
+  plugins: [new CamelCasePlugin()],
 });

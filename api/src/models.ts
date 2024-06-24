@@ -7,7 +7,7 @@ import { UserRoleTable } from "@/features/user-role";
 export interface Database {
   user: UserTable;
   role: RoleTable;
-  user_role: UserRoleTable;
+  userRole: UserRoleTable;
   permission: PermissionTable;
-  role_permission: RolePermissionTable;
+  rolePermission: RolePermissionTable;
 }

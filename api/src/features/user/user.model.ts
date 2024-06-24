@@ -7,11 +7,11 @@ import type {
 } from "kysely";
 
 export interface UserTable {
-  usr_id: Generated<number>;
-  usr_name: string;
-  usr_email: string;
-  usr_password: string;
-  usr_created: ColumnType<Date, Date | undefined, never>;
+  usrId: Generated<number>;
+  usrName: string;
+  usrEmail: string;
+  usrPassword: string;
+  usrCreated: ColumnType<Date, Date | undefined, never>;
 }
 
 export type User = Selectable<UserTable>;

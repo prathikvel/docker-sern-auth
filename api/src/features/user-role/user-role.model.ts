@@ -1,9 +1,9 @@
 import type { ColumnType, Selectable, Insertable, Updateable } from "kysely";
 
 export interface UserRoleTable {
-  url_usr_id: number;
-  url_rol_id: number;
-  url_created: ColumnType<Date, Date | undefined, never>;
+  urlUsrId: number;
+  urlRolId: number;
+  urlCreated: ColumnType<Date, Date | undefined, never>;
 }
 
 export type UserRole = Selectable<UserRoleTable>;

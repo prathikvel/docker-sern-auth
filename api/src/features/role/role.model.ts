@@ -7,9 +7,9 @@ import type {
 } from "kysely";
 
 export interface RoleTable {
-  rol_id: Generated<number>;
-  rol_name: string;
-  rol_created: ColumnType<Date, Date | undefined, never>;
+  rolId: Generated<number>;
+  rolName: string;
+  rolCreated: ColumnType<Date, Date | undefined, never>;
 }
 
 export type Role = Selectable<RoleTable>;
