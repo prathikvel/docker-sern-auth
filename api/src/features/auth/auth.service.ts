@@ -32,13 +32,13 @@ export const verify: VerifyFunction = async (email, password, done) => {
     }
 
     // if password matches
-    const match = await bcrypt.compare(password, user.usr_password!);
+    const match = await bcrypt.compare(password, user.usrPassword!);
     if (!match) {
       return done(null, false, { message: "Incorrect username or password." });
     }
 
     // return sanitized user
-    delete user.usr_password;
+    delete user.usrPassword;
     return done(null, user);
   } catch (err) {
     return done(err);
@@ -52,7 +52,7 @@ export const verify: VerifyFunction = async (email, password, done) => {
  * @param done Passport's done callback
  */
 export const serializeUser: SerializeUserFunction = (user, done) => {
-  process.nextTick(() => done(null, user.usr_id));
+  process.nextTick(() => done(null, user.usrId));
 };
 
 /**
