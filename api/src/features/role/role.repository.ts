@@ -37,7 +37,7 @@ const columnsToSelect = [
  * @param criterionValue The value of the criterion
  * @returns The role or undefined if the given `criterionValue` is invalid
  */
-const findRole = async <K extends keyof Role>(
+const findRole = <K extends keyof Role>(
   criterion: K,
   criterionValue: Role[K]
 ) => {
@@ -45,7 +45,7 @@ const findRole = async <K extends keyof Role>(
     .selectFrom("role")
     .where(criterion, "=", criterionValue as any);
 
-  return await query.select(columnsToSelect).executeTakeFirst();
+  return query.select(columnsToSelect).executeTakeFirst();
 };
 
 /**
@@ -72,7 +72,7 @@ export const findRoleByName = (name: string) => findRole("rolName", name);
  * @param criteria An object of role or permission fields to match with
  * @returns An array of roles, and their permissions, that match given criteria
  */
-export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
+export const findRoles = (criteria: Partial<Role & Permission> = {}) => {
   let query = db
     .selectFrom("role")
     .where((eb) => eb.and(pick(criteria, roleColumns)));
@@ -96,7 +96,7 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
     );
   }
 
-  return await query.select(columnsToSelect).execute();
+  return query.select(columnsToSelect).execute();
 };
 
 /**
@@ -113,7 +113,7 @@ export const createRole = async (role: NewRole) => {
     .values(role)
     .executeTakeFirstOrThrow();
 
-  return await findRoleById(Number(insertId!));
+  return findRoleById(Number(insertId!));
 };
 
 /**
@@ -131,7 +131,7 @@ export const updateRole = async (id: number, updateWith: RoleUpdate) => {
     .where("rolId", "=", id)
     .execute();
 
-  return await findRoleById(id);
+  return findRoleById(id);
 };
 
 /**

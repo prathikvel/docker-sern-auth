@@ -39,7 +39,7 @@ const columnsToSelect = [
  * @param withPassword If the return object includes `usrPassword`
  * @returns The user or undefined if the given `criterionValue` is invalid
  */
-const findUser = async <K extends keyof User>(
+const findUser = <K extends keyof User>(
   criterion: K,
   criterionValue: User[K],
   withPassword: boolean = false
@@ -48,7 +48,7 @@ const findUser = async <K extends keyof User>(
     .selectFrom("user")
     .where(criterion, "=", criterionValue as any);
 
-  return await query
+  return query
     .select(columnsToSelect)
     .$if(withPassword, (qb) => qb.select("usrPassword"))
     .executeTakeFirst();
@@ -90,7 +90,7 @@ export const findUserByEmailWithPassword = (email: string) =>
  * @param criteria An object of user or role fields to match with
  * @returns An array of users, and their roles, that match the given criteria
  */
-export const findUsers = async (criteria: Partial<User & Role> = {}) => {
+export const findUsers = (criteria: Partial<User & Role> = {}) => {
   let query = db
     .selectFrom("user")
     .where((eb) => eb.and(pick(criteria, userColumns)));
@@ -112,7 +112,7 @@ export const findUsers = async (criteria: Partial<User & Role> = {}) => {
     );
   }
 
-  return await query.select(columnsToSelect).execute();
+  return query.select(columnsToSelect).execute();
 };
 
 /**
@@ -129,7 +129,7 @@ export const createUser = async (user: NewUser) => {
     .values(user)
     .executeTakeFirstOrThrow();
 
-  return await findUserById(Number(insertId!));
+  return findUserById(Number(insertId!));
 };
 
 /**
@@ -147,7 +147,7 @@ export const updateUser = async (id: number, updateWith: UserUpdate) => {
     .where("usrId", "=", id)
     .execute();
 
-  return await findUserById(id);
+  return findUserById(id);
 };
 
 /**

@@ -13,13 +13,13 @@ const columns = ["urlUsrId", "urlRolId", "urlCreated"] as const;
  * @param rolId The userRole's `urlRolId`
  * @returns The userRole or undefined if the given `id`s are invalid
  */
-export const findUserRoleById = async (usrId: number, rolId: number) => {
+export const findUserRoleById = (usrId: number, rolId: number) => {
   const query = db
     .selectFrom("userRole")
     .where("urlUsrId", "=", usrId)
     .where("urlRolId", "=", rolId);
 
-  return await query.selectAll().executeTakeFirst();
+  return query.selectAll().executeTakeFirst();
 };
 
 /**
@@ -30,12 +30,12 @@ export const findUserRoleById = async (usrId: number, rolId: number) => {
  * @param criteria An object of userRole fields to match with
  * @returns An array of userRoles that match the given criteria
  */
-export const findUserRoles = async (criteria: Partial<UserRole> = {}) => {
+export const findUserRoles = (criteria: Partial<UserRole> = {}) => {
   const query = db
     .selectFrom("userRole")
     .where((eb) => eb.and(pick(criteria, columns)));
 
-  return await query.selectAll().execute();
+  return query.selectAll().execute();
 };
 
 /**
@@ -50,7 +50,7 @@ export const findUserRoles = async (criteria: Partial<UserRole> = {}) => {
 export const createUserRole = async (userRole: NewUserRole) => {
   await db.insertInto("userRole").values(userRole).executeTakeFirstOrThrow();
 
-  return await findUserRoleById(userRole.urlUsrId, userRole.urlRolId);
+  return findUserRoleById(userRole.urlUsrId, userRole.urlRolId);
 };
 
 /**
@@ -74,7 +74,7 @@ export const updateUserRole = async (
     .where("urlRolId", "=", rolId)
     .execute();
 
-  return await findUserRoleById(usrId, rolId);
+  return findUserRoleById(usrId, rolId);
 };
 
 /**

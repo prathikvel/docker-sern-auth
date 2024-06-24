@@ -17,13 +17,13 @@ const columns = ["rlpRolId", "rlpPerId", "rlpCreated"] as const;
  * @param perId The rolePermission's `rlpPerId`
  * @returns The rolePermission or undefined if the given `id`s are invalid
  */
-export const findRolePermissionById = async (rolId: number, perId: number) => {
+export const findRolePermissionById = (rolId: number, perId: number) => {
   const query = db
     .selectFrom("rolePermission")
     .where("rlpRolId", "=", rolId)
     .where("rlpPerId", "=", perId);
 
-  return await query.selectAll().executeTakeFirst();
+  return query.selectAll().executeTakeFirst();
 };
 
 /**
@@ -34,14 +34,12 @@ export const findRolePermissionById = async (rolId: number, perId: number) => {
  * @param criteria An object of rolePermission fields to match with
  * @returns An array of rolePermissions that match the given criteria
  */
-export const findRolePermissions = async (
-  criteria: Partial<RolePermission> = {}
-) => {
+export const findRolePermissions = (criteria: Partial<RolePermission> = {}) => {
   const query = db
     .selectFrom("rolePermission")
     .where((eb) => eb.and(pick(criteria, columns)));
 
-  return await query.selectAll().execute();
+  return query.selectAll().execute();
 };
 
 /**
@@ -62,7 +60,7 @@ export const createRolePermission = async (
     .executeTakeFirstOrThrow();
 
   const { rlpRolId, rlpPerId } = rolePermission;
-  return await findRolePermissionById(rlpRolId, rlpPerId);
+  return findRolePermissionById(rlpRolId, rlpPerId);
 };
 
 /**
@@ -87,7 +85,7 @@ export const updateRolePermission = async (
     .where("rlpPerId", "=", perId)
     .execute();
 
-  return await findRolePermissionById(rolId, perId);
+  return findRolePermissionById(rolId, perId);
 };
 
 /**

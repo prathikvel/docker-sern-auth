@@ -17,7 +17,7 @@ const columns = ["perId", "perName", "perCreated"] as const;
  * @param criterionValue The value of the criterion
  * @returns The permission or undefined if the given `criterionValue` is invalid
  */
-const findPermission = async <K extends keyof Permission>(
+const findPermission = <K extends keyof Permission>(
   criterion: K,
   criterionValue: Permission[K]
 ) => {
@@ -25,7 +25,7 @@ const findPermission = async <K extends keyof Permission>(
     .selectFrom("permission")
     .where(criterion, "=", criterionValue as any);
 
-  return await query.selectAll().executeTakeFirst();
+  return query.selectAll().executeTakeFirst();
 };
 
 /**
@@ -53,12 +53,12 @@ export const findPermissionByName = (name: string) =>
  * @param criteria An object of permission fields to match with
  * @returns An array of permissions that match the given criteria
  */
-export const findPermissions = async (criteria: Partial<Permission> = {}) => {
+export const findPermissions = (criteria: Partial<Permission> = {}) => {
   const query = db
     .selectFrom("permission")
     .where((eb) => eb.and(pick(criteria, columns)));
 
-  return await query.selectAll().execute();
+  return query.selectAll().execute();
 };
 
 /**
@@ -76,7 +76,7 @@ export const createPermission = async (permission: NewPermission) => {
     .values(permission)
     .executeTakeFirstOrThrow();
 
-  return await findPermissionById(Number(insertId!));
+  return findPermissionById(Number(insertId!));
 };
 
 /**
@@ -97,7 +97,7 @@ export const updatePermission = async (
     .where("perId", "=", id)
     .execute();
 
-  return await findPermissionById(id);
+  return findPermissionById(id);
 };
 
 /**
