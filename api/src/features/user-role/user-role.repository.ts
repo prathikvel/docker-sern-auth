@@ -4,20 +4,20 @@ import { pick } from "@/utils/object.util";
 import { UserRole, NewUserRole, UserRoleUpdate } from "./user-role.model";
 
 /** The columns to filter, including all userRole columns. */
-const columns = ["url_usr_id", "url_rol_id", "url_created"] as const;
+const columns = ["urlUsrId", "urlRolId", "urlCreated"] as const;
 
 /**
  * Returns the userRole or undefined if the given `id`s are invalid.
  *
- * @param usr_id The userRole's `url_usr_id`
- * @param rol_id The userRole's `url_rol_id`
+ * @param usrId The userRole's `urlUsrId`
+ * @param rolId The userRole's `urlRolId`
  * @returns The userRole or undefined if the given `id`s are invalid
  */
-export const findUserRoleById = async (usr_id: number, rol_id: number) => {
+export const findUserRoleById = async (usrId: number, rolId: number) => {
   const query = db
-    .selectFrom("user_role")
-    .where("url_usr_id", "=", usr_id)
-    .where("url_rol_id", "=", rol_id);
+    .selectFrom("userRole")
+    .where("urlUsrId", "=", usrId)
+    .where("urlRolId", "=", rolId);
 
   return await query.selectAll().executeTakeFirst();
 };
@@ -32,7 +32,7 @@ export const findUserRoleById = async (usr_id: number, rol_id: number) => {
  */
 export const findUserRoles = async (criteria: Partial<UserRole> = {}) => {
   const query = db
-    .selectFrom("user_role")
+    .selectFrom("userRole")
     .where((eb) => eb.and(pick(criteria, columns)));
 
   return await query.selectAll().execute();
@@ -48,51 +48,51 @@ export const findUserRoles = async (criteria: Partial<UserRole> = {}) => {
  * @throws NoResultError if the userRole was unable to be created
  */
 export const createUserRole = async (userRole: NewUserRole) => {
-  await db.insertInto("user_role").values(userRole).executeTakeFirstOrThrow();
+  await db.insertInto("userRole").values(userRole).executeTakeFirstOrThrow();
 
-  return await findUserRoleById(userRole.url_usr_id, userRole.url_rol_id);
+  return await findUserRoleById(userRole.urlUsrId, userRole.urlRolId);
 };
 
 /**
  * Updates the userRole with the given `id`s and returns the updated userRole
  * with {@link findUserRoleById}. Returns undefined if the `id`s are invalid.
  *
- * @param usr_id The userRole's `url_usr_id`
- * @param rol_id The userRole's `url_rol_id`
+ * @param usrId The userRole's `urlUsrId`
+ * @param rolId The userRole's `urlRolId`
  * @param updateWith The userRole fields to update with
  * @returns The updated userRole or undefined if the given `id`s are invalid
  */
 export const updateUserRole = async (
-  usr_id: number,
-  rol_id: number,
+  usrId: number,
+  rolId: number,
   updateWith: UserRoleUpdate
 ) => {
   await db
-    .updateTable("user_role")
+    .updateTable("userRole")
     .set(updateWith)
-    .where("url_usr_id", "=", usr_id)
-    .where("url_rol_id", "=", rol_id)
+    .where("urlUsrId", "=", usrId)
+    .where("urlRolId", "=", rolId)
     .execute();
 
-  return await findUserRoleById(usr_id, rol_id);
+  return await findUserRoleById(usrId, rolId);
 };
 
 /**
  * Deletes the userRole with the given `id`s and returns the deleted userRole
  * with {@link findUserRoleById}. Returns undefined if the `id`s are invalid.
  *
- * @param usr_id The userRole's `url_usr_id`
- * @param rol_id The userRole's `url_rol_id`
+ * @param usrId The userRole's `urlUsrId`
+ * @param rolId The userRole's `urlRolId`
  * @returns The deleted userRole or undefined if the given `id`s are invalid
  */
-export const deleteUserRole = async (usr_id: number, rol_id: number) => {
-  const userRole = await findUserRoleById(usr_id, rol_id);
+export const deleteUserRole = async (usrId: number, rolId: number) => {
+  const userRole = await findUserRoleById(usrId, rolId);
 
   if (userRole) {
     await db
-      .deleteFrom("user_role")
-      .where("url_usr_id", "=", usr_id)
-      .where("url_rol_id", "=", rol_id)
+      .deleteFrom("userRole")
+      .where("urlUsrId", "=", usrId)
+      .where("urlRolId", "=", rolId)
       .execute();
   }
 

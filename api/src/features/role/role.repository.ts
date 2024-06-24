@@ -9,22 +9,22 @@ import { Permission } from "../permission";
 import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
-const roleColumns = ["rol_id", "rol_name", "rol_created"] as const;
+const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
 
-/** The permission columns to select/filter, including the `per_id` and
- * `per_name` permission columns. */
-const permissionColumns = ["per_id", "per_name"] as const;
+/** The permission columns to select/filter, including the `perId` and
+ * `perName` permission columns. */
+const permissionColumns = ["perId", "perName"] as const;
 
-/** The columns to select, including all role columns and the `per_id` and
- * `per_name` permission columns. */
+/** The columns to select, including all role columns and the `perId` and
+ * `perName` permission columns. */
 const columnsToSelect = [
   ...roleColumns,
   (eb: ExpressionBuilder<Database, "role">) => {
     return jsonArrayFrom(
       eb
-        .selectFrom("role_permission")
-        .whereRef("rlp_rol_id", "=", "rol_id")
-        .innerJoin("permission", "per_id", "rlp_per_id")
+        .selectFrom("rolePermission")
+        .whereRef("rlpRolId", "=", "rolId")
+        .innerJoin("permission", "perId", "rlpPerId")
         .select(permissionColumns)
     ).as("permissions");
   },
@@ -51,18 +51,18 @@ const findRole = async <K extends keyof Role>(
 /**
  * Returns the role and its permissions or undefined if given `id` is invalid.
  *
- * @param id The role's `rol_id`
+ * @param id The role's `rolId`
  * @returns The role and its permissions or undefined if given `id` is invalid
  */
-export const findRoleById = (id: number) => findRole("rol_id", id);
+export const findRoleById = (id: number) => findRole("rolId", id);
 
 /**
  * Returns the role and its permissions or undefined if given `name` is invalid.
  *
- * @param name The role's `rol_name`
+ * @param name The role's `rolName`
  * @returns The role and its permissions or undefined if given `name` is invalid
  */
-export const findRoleByName = (name: string) => findRole("rol_name", name);
+export const findRoleByName = (name: string) => findRole("rolName", name);
 
 /**
  * Returns an array of roles, and their permissions, that match the given
@@ -84,14 +84,14 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
   if (withPermissionCriteria) {
     query = query.where((eb) =>
       eb(
-        "rol_id",
+        "rolId",
         "in",
         eb
-          .selectFrom("role_permission")
-          .whereRef("rlp_rol_id", "=", "rol_id")
-          .innerJoin("permission", "per_id", "rlp_per_id")
+          .selectFrom("rolePermission")
+          .whereRef("rlpRolId", "=", "rolId")
+          .innerJoin("permission", "perId", "rlpPerId")
           .where((eb) => eb.and(pick(criteria, permissionColumns)))
-          .select("rlp_rol_id")
+          .select("rlpRolId")
       )
     );
   }
@@ -120,7 +120,7 @@ export const createRole = async (role: NewRole) => {
  * Updates the role with the given `id` and returns the updated role with
  * {@link findRoleById}. Returns undefined if the `id` is invalid.
  *
- * @param id The role's `rol_id`
+ * @param id The role's `rolId`
  * @param updateWith The role fields to update with
  * @returns The updated role or undefined if the given `id` is invalid
  */
@@ -128,7 +128,7 @@ export const updateRole = async (id: number, updateWith: RoleUpdate) => {
   await db
     .updateTable("role")
     .set(updateWith)
-    .where("rol_id", "=", id)
+    .where("rolId", "=", id)
     .execute();
 
   return await findRoleById(id);
@@ -138,14 +138,14 @@ export const updateRole = async (id: number, updateWith: RoleUpdate) => {
  * Deletes the role with the given `id` and returns the deleted role with
  * {@link findRoleById}. Returns undefined if the `id` is invalid.
  *
- * @param id The role's `rol_id`
+ * @param id The role's `rolId`
  * @returns The deleted role or undefined if the given `id` is invalid
  */
 export const deleteRole = async (id: number) => {
   const role = await findRoleById(id);
 
   if (role) {
-    await db.deleteFrom("role").where("rol_id", "=", id).execute();
+    await db.deleteFrom("role").where("rolId", "=", id).execute();
   }
 
   return role;

@@ -9,23 +9,23 @@ import { Role } from "../role";
 import { User, NewUser, UserUpdate } from "./user.model";
 
 /** The user columns to select/filter, including all the user columns except
- * `usr_password`. */
-const userColumns = ["usr_id", "usr_name", "usr_email", "usr_created"] as const;
+ * `usrPassword`. */
+const userColumns = ["usrId", "usrName", "usrEmail", "usrCreated"] as const;
 
-/** The role columns to select/filter, including the `rol_id` and `rol_name`
+/** The role columns to select/filter, including the `rolId` and `rolName`
  * role columns. */
-const roleColumns = ["rol_id", "rol_name"] as const;
+const roleColumns = ["rolId", "rolName"] as const;
 
-/** The columns to select, including all user columns, except `usr_password`,
- * and the `rol_id` and `rol_name` role columns. */
+/** The columns to select, including all user columns, except `usrPassword`,
+ * and the `rolId` and `rolName` role columns. */
 const columnsToSelect = [
   ...userColumns,
   (eb: ExpressionBuilder<Database, "user">) => {
     return jsonArrayFrom(
       eb
-        .selectFrom("user_role")
-        .whereRef("url_usr_id", "=", "usr_id")
-        .innerJoin("role", "rol_id", "url_rol_id")
+        .selectFrom("userRole")
+        .whereRef("urlUsrId", "=", "usrId")
+        .innerJoin("role", "rolId", "urlRolId")
         .select(roleColumns)
     ).as("roles");
   },
@@ -36,7 +36,7 @@ const columnsToSelect = [
  *
  * @param criterion The column name
  * @param criterionValue The value of the criterion
- * @param withPassword If the return object includes `usr_password`
+ * @param withPassword If the return object includes `usrPassword`
  * @returns The user or undefined if the given `criterionValue` is invalid
  */
 const findUser = async <K extends keyof User>(
@@ -50,37 +50,37 @@ const findUser = async <K extends keyof User>(
 
   return await query
     .select(columnsToSelect)
-    .$if(withPassword, (qb) => qb.select("usr_password"))
+    .$if(withPassword, (qb) => qb.select("usrPassword"))
     .executeTakeFirst();
 };
 
 /**
  * Returns the user and their roles or undefined if the given `id` is invalid.
- * The return object excludes `usr_password` for security.
+ * The return object excludes `usrPassword` for security.
  *
- * @param id The user's `usr_id`
+ * @param id The user's `usrId`
  * @returns The user and their roles or undefined if the given `id` is invalid
  */
-export const findUserById = (id: number) => findUser("usr_id", id);
+export const findUserById = (id: number) => findUser("usrId", id);
 
 /**
  * Returns the user and their roles or undefined if the given `email` is invalid.
- * The return object excludes `usr_password` for security.
+ * The return object excludes `usrPassword` for security.
  *
- * @param email The user's `usr_email`
+ * @param email The user's `usrEmail`
  * @returns The user and their roles or undefined if the given `email` is invalid
  */
-export const findUserByEmail = (email: string) => findUser("usr_email", email);
+export const findUserByEmail = (email: string) => findUser("usrEmail", email);
 
 /**
  * Returns the user and their roles or undefined if the given `email` is invalid.
- * The return object includes `usr_password`.
+ * The return object includes `usrPassword`.
  *
- * @param email The user's `usr_email`
+ * @param email The user's `usrEmail`
  * @returns The user and their roles or undefined if the given `email` is invalid
  */
 export const findUserByEmailWithPassword = (email: string) =>
-  findUser("usr_email", email, true);
+  findUser("usrEmail", email, true);
 
 /**
  * Returns an array of users, and their roles, that match the given criteria.
@@ -100,14 +100,14 @@ export const findUsers = async (criteria: Partial<User & Role> = {}) => {
   if (withRoleCriteria) {
     query = query.where((eb) =>
       eb(
-        "usr_id",
+        "usrId",
         "in",
         eb
-          .selectFrom("user_role")
-          .whereRef("url_usr_id", "=", "usr_id")
-          .innerJoin("role", "rol_id", "url_rol_id")
+          .selectFrom("userRole")
+          .whereRef("urlUsrId", "=", "usrId")
+          .innerJoin("role", "rolId", "urlRolId")
           .where((eb) => eb.and(pick(criteria, roleColumns)))
-          .select("url_usr_id")
+          .select("urlUsrId")
       )
     );
   }
@@ -136,7 +136,7 @@ export const createUser = async (user: NewUser) => {
  * Updates the user with the given `id` and returns the updated user with
  * {@link findUserById}. Returns undefined if the `id` is invalid.
  *
- * @param id The user's `usr_id`
+ * @param id The user's `usrId`
  * @param updateWith The user fields to update with
  * @returns The updated user or undefined if the given `id` is invalid
  */
@@ -144,7 +144,7 @@ export const updateUser = async (id: number, updateWith: UserUpdate) => {
   await db
     .updateTable("user")
     .set(updateWith)
-    .where("usr_id", "=", id)
+    .where("usrId", "=", id)
     .execute();
 
   return await findUserById(id);
@@ -154,14 +154,14 @@ export const updateUser = async (id: number, updateWith: UserUpdate) => {
  * Deletes the user with the given `id` and returns the deleted user with
  * {@link findUserById}. Returns undefined if the `id` is invalid.
  *
- * @param id The user's `usr_id`
+ * @param id The user's `usrId`
  * @returns The deleted user or undefined if the given `id` is invalid
  */
 export const deleteUser = async (id: number) => {
   const user = await findUserById(id);
 
   if (user) {
-    await db.deleteFrom("user").where("usr_id", "=", id).execute();
+    await db.deleteFrom("user").where("usrId", "=", id).execute();
   }
 
   return user;

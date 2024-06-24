@@ -8,7 +8,7 @@ import {
 } from "./permission.model";
 
 /** The columns to filter, including all permission columns. */
-const columns = ["per_id", "per_name", "per_created"] as const;
+const columns = ["perId", "perName", "perCreated"] as const;
 
 /**
  * The generic function to find a permission based on a criterion.
@@ -31,19 +31,19 @@ const findPermission = async <K extends keyof Permission>(
 /**
  * Returns the permission or undefined if the given `id` is invalid.
  *
- * @param id The permission's `per_id`
+ * @param id The permission's `perId`
  * @returns The permission or undefined if the given `id` is invalid
  */
-export const findPermissionById = (id: number) => findPermission("per_id", id);
+export const findPermissionById = (id: number) => findPermission("perId", id);
 
 /**
  * Returns the permission or undefined if the given `name` is invalid.
  *
- * @param name The permission's `per_name`
+ * @param name The permission's `perName`
  * @returns The permission or undefined if the given `name` is invalid
  */
 export const findPermissionByName = (name: string) =>
-  findPermission("per_name", name);
+  findPermission("perName", name);
 
 /**
  * Returns an array of permissions that match the given criteria. Returns all
@@ -83,7 +83,7 @@ export const createPermission = async (permission: NewPermission) => {
  * Updates the permission with the given `id` and returns the updated permission
  * with {@link findPermissionById}. Returns undefined if the `id` is invalid.
  *
- * @param id The permission's `per_id`
+ * @param id The permission's `perId`
  * @param updateWith The permission fields to update with
  * @returns The updated permission or undefined if the given `id` is invalid
  */
@@ -94,7 +94,7 @@ export const updatePermission = async (
   await db
     .updateTable("permission")
     .set(updateWith)
-    .where("per_id", "=", id)
+    .where("perId", "=", id)
     .execute();
 
   return await findPermissionById(id);
@@ -104,14 +104,14 @@ export const updatePermission = async (
  * Deletes the permission with the given `id` and returns the deleted permission
  * with {@link findPermissionById}. Returns undefined if the `id` is invalid.
  *
- * @param id The permission's `per_id`
+ * @param id The permission's `perId`
  * @returns The deleted permission or undefined if the given `id` is invalid
  */
 export const deletePermission = async (id: number) => {
   const permission = await findPermissionById(id);
 
   if (permission) {
-    await db.deleteFrom("permission").where("per_id", "=", id).execute();
+    await db.deleteFrom("permission").where("perId", "=", id).execute();
   }
 
   return permission;
