@@ -116,6 +116,25 @@ export const findUsers = (criteria: Partial<User & Role> = {}) => {
 };
 
 /**
+ * Returns the usrId and perName if the given user has the given permission.
+ * Otherwise, returns undefined.
+ *
+ * @param usrId The user's `usrId`
+ * @param perName The permission's `perName`
+ * @returns A row or undefined if the user doesn't have the given permission
+ */
+export const checkUserPermission = (usrId: number, perName: string) => {
+  const query = db
+    .selectFrom("userRole")
+    .innerJoin("rolePermission", "rlpRolId", "urlRolId")
+    .innerJoin("permission", "perId", "rlpPerId")
+    .where("urlUsrId", "=", usrId)
+    .where("perName", "=", perName);
+
+  return query.select(["urlUsrId as usrId", "perName"]).executeTakeFirst();
+};
+
+/**
  * Inserts a new user in the database and returns the newly created user with
  * {@link findUserById}. Throws a NoResultError if the user couldn't be created.
  *
