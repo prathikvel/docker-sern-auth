@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 
 import { AuthenticationError, AuthorizationError } from "@/utils/error.util";
 
-import { checkUserPermission } from "../user";
+import { checkRoleBasedAccess } from "./auth.repository";
 
 /**
  * A middleware that checks if the user is authenticated. If authenticated,
@@ -27,9 +27,9 @@ export const authenticationHandler: RequestHandler = (req, res, next) => {
 export const authorizationHandler = (permission: string): RequestHandler => {
   return async (req, res, next) => {
     const { usrId } = req.user!;
-    const userPermission = await checkUserPermission(usrId, permission);
+    const roleBasedAccess = await checkRoleBasedAccess(usrId, permission);
 
-    if (userPermission) {
+    if (roleBasedAccess) {
       return next();
     }
 
