@@ -13,5 +13,6 @@ export interface RoleTable {
 }
 
 export type Role = Selectable<RoleTable>;
+export type RoleIds = Pick<Role, "rolId">;
 export type NewRole = Insertable<RoleTable>;
 export type RoleUpdate = Updateable<RoleTable>;

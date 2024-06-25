@@ -15,5 +15,6 @@ export interface UserTable {
 }
 
 export type User = Selectable<UserTable>;
+export type UserIds = Pick<User, "usrId">;
 export type NewUser = Insertable<UserTable>;
 export type UserUpdate = Updateable<UserTable>;

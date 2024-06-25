@@ -7,5 +7,6 @@ export interface RolePermissionTable {
 }
 
 export type RolePermission = Selectable<RolePermissionTable>;
+export type RolePermissionIds = Pick<RolePermission, "rlpRolId" | "rlpPerId">;
 export type NewRolePermission = Insertable<RolePermissionTable>;
 export type RolePermissionUpdate = Updateable<RolePermissionTable>;

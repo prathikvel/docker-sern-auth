@@ -13,5 +13,6 @@ export interface PermissionTable {
 }
 
 export type Permission = Selectable<PermissionTable>;
+export type PermissionIds = Pick<Permission, "perId">;
 export type NewPermission = Insertable<PermissionTable>;
 export type PermissionUpdate = Updateable<PermissionTable>;

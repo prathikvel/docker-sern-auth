@@ -7,5 +7,6 @@ export interface UserRoleTable {
 }
 
 export type UserRole = Selectable<UserRoleTable>;
+export type UserRoleIds = Pick<UserRole, "urlUsrId" | "urlRolId">;
 export type NewUserRole = Insertable<UserRoleTable>;
 export type UserRoleUpdate = Updateable<UserRoleTable>;
