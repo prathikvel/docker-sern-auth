@@ -5,6 +5,7 @@ import mySqlSession from "express-mysql-session";
 
 import { pool } from "@/config/database";
 import * as pp from "@/config/passport";
+import routes from "@/routes";
 
 // ----------------------------- CONFIG -----------------------------
 
@@ -15,6 +16,7 @@ pp.config();
 const app = express();
 const MySQLStore = mySqlSession(session as any);
 
+app.use(express.json());
 app.use(
   session({
     name: "sessionId",
@@ -32,8 +34,6 @@ app.use(passport.session());
 
 // ----------------------------- ROUTES -----------------------------
 
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello world!" });
-});
+app.use("/api", routes);
 
 export default app;
