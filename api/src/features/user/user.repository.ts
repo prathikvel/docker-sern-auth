@@ -5,8 +5,9 @@ import { db } from "@/config/database";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
+import { CUBAFunction } from "../auth";
 import { Role } from "../role";
-import { User, NewUser, UserUpdate } from "./user.model";
+import { User, UserIds, NewUser, UserUpdate } from "./user.model";
 
 /** The user columns to select/filter, including all the user columns except
  * `usrPassword`. */
@@ -30,6 +31,38 @@ const columnsToSelect = [
     ).as("roles");
   },
 ] as const;
+
+/**
+ * Checks if the given user is the owner of the given user resource. Returns
+ * the resource's IDs, which is only `usrId` in this case, if the user has user-
+ * based access and undefined otherwise.
+ *
+ * @param usrId The user's `usrId`
+ * @param resourceId The value of the resource's ID
+ * @param resourceIds An object of all resource's IDs
+ * @returns A row, or undefined if the user isn't the owner of the user resource
+ */
+export const checkUserBasedAccess: CUBAFunction<UserIds> = (
+  usrId,
+  resourceId,
+  resourceIds
+) => {
+  let query = db.selectFrom("user");
+
+  // find resource
+  if (resourceIds) {
+    query = query.where((eb) => eb.and(resourceIds));
+  } else if (resourceId) {
+    query = query.where("usrId", "=", resourceId);
+  } else {
+    throw new TypeError("Invalid arguments");
+  }
+
+  // filter by user
+  query = query.where("usrId", "=", usrId);
+
+  return query.select("usrId").limit(1).executeTakeFirst();
+};
 
 /**
  * The generic function to find a user based on a criterion.
