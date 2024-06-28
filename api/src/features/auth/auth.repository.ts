@@ -1,12 +1,12 @@
 import { db } from "@/config/database";
 
 /**
- * Returns the usrId and perName if the given user's role(s) have the given
- * permission. Otherwise, returns undefined.
+ * Checks if the given user has the given permission based on the user's roles.
+ * Returns `perName` if the user has role-based access and undefined otherwise.
  *
  * @param usrId The user's `usrId`
  * @param perName The permission's `perName`
- * @returns A row or undefined if the user doesn't have the given permission
+ * @returns A row, or undefined if the user doesn't have the given permission
  */
 export const checkRoleBasedAccess = (usrId: number, perName: string) => {
   const query = db
@@ -16,5 +16,5 @@ export const checkRoleBasedAccess = (usrId: number, perName: string) => {
     .where("urlUsrId", "=", usrId)
     .where("perName", "=", perName);
 
-  return query.select(["urlUsrId as usrId", "perName"]).executeTakeFirst();
+  return query.select("perName").limit(1).executeTakeFirst();
 };
