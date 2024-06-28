@@ -1,5 +1,6 @@
 import express from "express";
 
+import { authorizationHandler } from "../auth";
 import {
   getCurrentUser,
   getUserById,
@@ -9,15 +10,26 @@ import {
   editUserPassword,
   removeUser,
 } from "./user.controller";
+import { checkUserBasedAccess } from "./user.repository";
 
 export const userRouter = express.Router();
 
+// get user
 userRouter.get("/current", getCurrentUser);
-userRouter.get("/:id", getUserById);
-userRouter.get("/", getUsers);
-userRouter.post("/", addUser);
+userRouter.get(
+  "/:id",
+  authorizationHandler("user:read", checkUserBasedAccess),
+  getUserById
+);
+userRouter.get("/", authorizationHandler("user:read"), getUsers);
+
+// add user
+userRouter.post("/", authorizationHandler("user:create"), addUser);
+
+// edit user
 userRouter.put(
   "/:id",
+  authorizationHandler("user:update", checkUserBasedAccess),
   (req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
@@ -27,4 +39,10 @@ userRouter.put(
   editUser
 );
 userRouter.put("/:id", editUserPassword);
-userRouter.delete("/:id", removeUser);
+
+// remove user
+userRouter.delete(
+  "/:id",
+  authorizationHandler("user:delete", checkUserBasedAccess),
+  removeUser
+);
