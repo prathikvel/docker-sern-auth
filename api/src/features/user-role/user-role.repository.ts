@@ -1,4 +1,4 @@
-import { db } from "@/config/database";
+import { db } from "@/configs/database.config";
 import { pick } from "@/utils/object.util";
 
 import { UserRole, NewUserRole, UserRoleUpdate } from "./user-role.model";

@@ -3,8 +3,8 @@ import passport from "passport";
 import session from "express-session";
 import mySqlSession from "express-mysql-session";
 
-import { pool } from "@/config/database";
-import * as pp from "@/config/passport";
+import { pool } from "@/configs/database.config";
+import * as pp from "@/configs/passport.config";
 import routes from "@/routes";
 
 // ----------------------------- CONFIG -----------------------------

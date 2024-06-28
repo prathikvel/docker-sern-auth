@@ -1,7 +1,7 @@
 import { ExpressionBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
-import { db } from "@/config/database";
+import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 

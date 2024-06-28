@@ -1,4 +1,4 @@
-import { db } from "@/config/database";
+import { db } from "@/configs/database.config";
 
 /**
  * Checks if the given user has the given permission based on the user's roles.
