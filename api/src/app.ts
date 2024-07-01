@@ -5,6 +5,7 @@ import mySqlSession from "express-mysql-session";
 
 import { pool } from "@/configs/database.config";
 import * as pp from "@/configs/passport.config";
+import errorHandler from "@/middlewares/error.middleware";
 import routes from "@/routes";
 
 // ----------------------------- CONFIG -----------------------------
@@ -35,5 +36,8 @@ app.use(passport.session());
 // ----------------------------- ROUTES -----------------------------
 
 app.use("/api", routes);
+app.use(errorHandler);
+
+// ----------------------------- EXPORT -----------------------------
 
 export default app;
