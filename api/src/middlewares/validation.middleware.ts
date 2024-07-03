@@ -18,8 +18,8 @@ export const validationHandler: RequestHandler = (req, res, next) => {
     // get error locations
     const locations = new Set<string>();
     for (const error of errors.array()) {
-      if (Object.hasOwn(error, "location")) {
-        locations.add((error as any).location);
+      if ("location" in error) {
+        locations.add(error.location);
       }
     }
 
