@@ -10,7 +10,7 @@ import {
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
-import { PASSWORD_CONFIG, ERROR_MESSAGES } from "./user.constants";
+import { CONFIG, ERROR_MESSAGES } from "./user.constants";
 import {
   findUserById,
   findUserByIdWithPassword,
@@ -61,7 +61,7 @@ export const addUser: RequestHandler[] = [
     body("usrName", ERROR_MESSAGES.usrName).isAlpha(),
     body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail(),
     body("usrPassword", ERROR_MESSAGES.usrPassword).isLength({
-      min: PASSWORD_CONFIG.minLength,
+      min: CONFIG.pwdMinLength,
     }),
   ]),
   validationHandler,
@@ -70,7 +70,7 @@ export const addUser: RequestHandler[] = [
   async (req, res, next) => {
     req.body.usrPassword = await bcrypt.hash(
       req.body.usrPassword,
-      PASSWORD_CONFIG.saltRounds
+      CONFIG.pwdSaltRounds
     );
     createUser(req.body)
       .then(respondRepository(res, { status: 201 }))
@@ -110,7 +110,7 @@ export const editUserPassword: RequestHandler[] = [
     param("id").isInt(),
     body("oldUsrPassword", ERROR_MESSAGES.oldUsrPassword).notEmpty(),
     body("newUsrPassword", ERROR_MESSAGES.newUsrPassword).isLength({
-      min: PASSWORD_CONFIG.minLength,
+      min: CONFIG.pwdMinLength,
     }),
   ]),
   validationHandler,
@@ -133,10 +133,7 @@ export const editUserPassword: RequestHandler[] = [
     }
 
     // update new password
-    const usrPassword = await bcrypt.hash(
-      newUsrPassword,
-      PASSWORD_CONFIG.saltRounds
-    );
+    const usrPassword = await bcrypt.hash(newUsrPassword, CONFIG.pwdSaltRounds);
     updateUser(id, { usrPassword })
       .then(respondRepositoryOrThrow(res))
       .catch(handleRepositoryError(next));

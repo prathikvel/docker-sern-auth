@@ -1,6 +1,6 @@
-export const PASSWORD_CONFIG = {
-  minLength: 12,
-  saltRounds: 10,
+export const CONFIG = {
+  pwdMinLength: 12,
+  pwdSaltRounds: 10,
 } as const;
 
 export const ERROR_MESSAGES = {
