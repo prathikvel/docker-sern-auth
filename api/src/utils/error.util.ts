@@ -1,5 +1,5 @@
 /** A custom error that is configurable with environment-specific errors. */
-class CustomError extends Error {
+export class CustomError extends Error {
   /** Status code */
   status: number;
   /** Custom production errors */
@@ -47,6 +47,20 @@ class CustomError extends Error {
       configurable: true,
       writable: true,
     });
+  }
+}
+
+/** A CustomError with the name as "ServerError". */
+export class ServerError extends CustomError {
+  constructor(
+    status: number,
+    message: string,
+    errorProd?: { [key: string]: any },
+    errorDev?: { [key: string]: any }
+  ) {
+    // super
+    super("ServerError", status, message, errorProd, errorDev);
+    Object.setPrototypeOf(this, ServerError.prototype); // for typescript
   }
 }
 

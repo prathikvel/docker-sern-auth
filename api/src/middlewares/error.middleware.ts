@@ -1,6 +1,6 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
 
-import { ClientError } from "@/utils/error.util";
+import { CustomError, ClientError, ServerError } from "@/utils/error.util";
 
 /**
  * Handles a request for an invalid resource. Passes a ClientError with 404
@@ -17,6 +17,12 @@ const notFoundHandler: RequestHandler = (req, res, next) => {
  * Uses the error status if it's set. Otherwise, sets the response status to 500.
  */
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
+  // convert error
+  if (!(error instanceof CustomError)) {
+    const message = error?.message ?? "Internal error";
+    error = new ServerError(500, message, undefined, error);
+  }
+
   // parse error
   error = JSON.parse(JSON.stringify(error));
   const { errorProd, errorDev, ...origErr } = error;
