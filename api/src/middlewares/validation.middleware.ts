@@ -8,22 +8,25 @@ import { ClientError } from "@/utils/error.util";
  * a ClientError is passed to the error handler. Otherwise, the request proceeds.
  */
 export const validationHandler: RequestHandler = (req, res, next) => {
-  const errors = validationResult(req).formatWith(
-    // rename msg to message
-    ({ msg: message, ...rest }) => ({ message, ...rest })
-  );
+  const errors = validationResult(req).formatWith((error) => {
+    const { msg: message, ...rest } = error;
+    switch (error.type) {
+      case "field":
+        // hide values
+        delete error.value;
+      case "alternative":
+      case "alternative_grouped":
+      case "unknown_fields":
+        // rename msg to message
+        return { message, ...rest };
+      default:
+        throw new Error("Unknown error type");
+    }
+  });
 
   // handle validation errors
   if (!errors.isEmpty()) {
-    // get error locations
-    const locations = new Set<string>();
-    for (const error of errors.array()) {
-      if ("location" in error) {
-        locations.add(error.location);
-      }
-    }
-
-    const message = `Invalid ${Array.from(locations).join(", ")}`;
+    const message = "Validation error";
     return next(new ClientError(406, message, { errors: errors.array() }));
   }
 
