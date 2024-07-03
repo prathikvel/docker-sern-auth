@@ -16,14 +16,14 @@ export const validationHandler: RequestHandler = (req, res, next) => {
   // handle validation errors
   if (!errors.isEmpty()) {
     // get error locations
-    const locations = [];
+    const locations = new Set<string>();
     for (const error of errors.array()) {
       if (Object.hasOwn(error, "location")) {
-        locations.push((error as any).location);
+        locations.add((error as any).location);
       }
     }
 
-    const message = `Invalid ${locations.join(", ")}`;
+    const message = `Invalid ${Array.from(locations).join(", ")}`;
     return next(new ClientError(406, message, { errors: errors.array() }));
   }
 
