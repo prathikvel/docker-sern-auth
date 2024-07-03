@@ -1,6 +1,16 @@
 import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
+import { checkExact, param, body } from "express-validator";
 
+import { validationHandler } from "@/middlewares/validation.middleware";
+import {
+  respondRepository,
+  respondRepositoryOrThrow,
+  handleRepositoryError,
+} from "@/utils/controller.util";
+import { ClientError } from "@/utils/error.util";
+
+import { PASSWORD_CONFIG, ERROR_MESSAGES } from "./user.constants";
 import {
   findUserById,
   findUserByIdWithPassword,
@@ -21,84 +31,132 @@ export const getCurrentUser: RequestHandler = (req, res) => {
  * Responds with all system users.
  */
 export const getUsers: RequestHandler = (req, res, next) => {
-  findUsers()
-    .then((data) => res.status(200).json({ data }))
-    .catch(next);
+  findUsers().then(respondRepository(res)).catch(handleRepositoryError(next));
 };
 
 /**
  * Responds with a user with the given `id` parameter.
  */
-export const getUserById: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+export const getUserById: RequestHandler[] = [
+  // validation
+  checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
+  validationHandler,
 
-  findUserById(id)
-    .then((data) => res.status(200).json({ data }))
-    .catch(next);
-};
+  // controller
+  (req, res, next) => {
+    const id = Number(req.params.id);
+    findUserById(id)
+      .then(respondRepositoryOrThrow(res))
+      .catch(handleRepositoryError(next));
+  },
+];
 
 /**
  * Creates a new user with properties from `req.body` and responds with the
  * newly created user.
  */
-export const addUser: RequestHandler = async (req, res, next) => {
-  req.body.usrPassword = await bcrypt.hash(req.body.usrPassword, 10);
+export const addUser: RequestHandler[] = [
+  // validation
+  checkExact([
+    body("usrName", ERROR_MESSAGES.usrName).isAlpha(),
+    body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail(),
+    body("usrPassword", ERROR_MESSAGES.usrPassword).isLength({
+      min: PASSWORD_CONFIG.minLength,
+    }),
+  ]),
+  validationHandler,
 
-  createUser(req.body)
-    .then((data) => res.status(201).json({ data }))
-    .catch(next);
-};
+  // controller
+  async (req, res, next) => {
+    req.body.usrPassword = await bcrypt.hash(
+      req.body.usrPassword,
+      PASSWORD_CONFIG.saltRounds
+    );
+    createUser(req.body)
+      .then(respondRepository(res, { status: 201 }))
+      .catch(handleRepositoryError(next));
+  },
+];
 
 /**
  * Edits a user with the given `id` parameter and properties from `req.body`.
  * Edits all properties except `usrPassword`. Responds with the edited user.
  */
-export const editUser: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+export const editUser: RequestHandler[] = [
+  // validation
+  checkExact([
+    param("id", ERROR_MESSAGES.usrId).isInt(),
+    body("usrName", ERROR_MESSAGES.usrName).isAlpha().optional(),
+    body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail().optional(),
+  ]),
+  validationHandler,
 
-  // doesn't update password
-  delete req.body.usrPassword;
-
-  updateUser(id, req.body)
-    .then((data) => res.status(200).json({ data }))
-    .catch(next);
-};
+  // controller
+  (req, res, next) => {
+    const id = Number(req.params.id);
+    updateUser(id, req.body)
+      .then(respondRepositoryOrThrow(res))
+      .catch(handleRepositoryError(next));
+  },
+];
 
 /**
  * Changes a user password if the current password matches. Responds with the
  * edited user, which doesn't include the previous or current `usrPassword`.
  */
-export const editUserPassword: RequestHandler = async (req, res, next) => {
-  const id = Number(req.params.id);
-  const { oldUsrPassword, newUsrPassword } = req.body;
+export const editUserPassword: RequestHandler[] = [
+  // validation
+  checkExact([
+    param("id").isInt(),
+    body("oldUsrPassword", ERROR_MESSAGES.oldUsrPassword).notEmpty(),
+    body("newUsrPassword", ERROR_MESSAGES.newUsrPassword).isLength({
+      min: PASSWORD_CONFIG.minLength,
+    }),
+  ]),
+  validationHandler,
 
-  // find given user
-  const user = await findUserByIdWithPassword(id);
-  if (!user) {
-    return next();
-  }
+  // controller
+  async (req, res, next) => {
+    const id = Number(req.params.id);
+    const { oldUsrPassword, newUsrPassword } = req.body;
 
-  // if password matches
-  const match = await bcrypt.compare(oldUsrPassword, user.usrPassword!);
-  if (!match) {
-    return next();
-  }
+    // find given user
+    const user = await findUserByIdWithPassword(id);
+    if (!user) {
+      return next(new ClientError(406, ERROR_MESSAGES.invalidCredentials));
+    }
 
-  // update new password
-  const usrPassword = await bcrypt.hash(newUsrPassword, 10);
-  updateUser(id, { usrPassword })
-    .then((data) => res.status(200).json({ data }))
-    .catch(next);
-};
+    // if password matches
+    const match = await bcrypt.compare(oldUsrPassword, user.usrPassword!);
+    if (!match) {
+      return next(new ClientError(406, ERROR_MESSAGES.invalidCredentials));
+    }
+
+    // update new password
+    const usrPassword = await bcrypt.hash(
+      newUsrPassword,
+      PASSWORD_CONFIG.saltRounds
+    );
+    updateUser(id, { usrPassword })
+      .then(respondRepositoryOrThrow(res))
+      .catch(handleRepositoryError(next));
+  },
+];
 
 /**
  * Deletes a user with the given `id` parameter and responds with the deleted
  * user.
  */
-export const removeUser: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+export const removeUser: RequestHandler[] = [
+  // validation
+  checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
+  validationHandler,
 
-  deleteUser(id)
-    .then((data) => res.status(200).json({ data }))
-    .catch(next);
-};
+  // controller
+  (req, res, next) => {
+    const id = Number(req.params.id);
+    deleteUser(id)
+      .then(respondRepositoryOrThrow(res))
+      .catch(handleRepositoryError(next));
+  },
+];

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 
 import { authorizationHandler } from "../auth";
 import {
@@ -30,12 +30,12 @@ userRouter.post("/", authorizationHandler("user:create"), addUser);
 userRouter.put(
   "/:id",
   authorizationHandler("user:update", checkUserBasedAccess),
-  (req, res, next) => {
+  <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
     };
     return hasOwn("oldUsrPassword", "newUsrPassword") ? next("route") : next();
-  },
+  }),
   editUser
 );
 userRouter.put("/:id", editUserPassword);
