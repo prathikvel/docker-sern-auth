@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
 import { checkExact, param, body } from "express-validator";
 
-import { validationHandler } from "@/middlewares/validation.middleware";
+import { handleValidation } from "@/middlewares/validation.middleware";
 import {
   respondRepository,
   respondRepositoryOrThrow,
@@ -40,7 +40,7 @@ export const getUsers: RequestHandler = (req, res, next) => {
 export const getUserById: RequestHandler[] = [
   // validation
   checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
-  validationHandler,
+  handleValidation,
 
   // controller
   (req, res, next) => {
@@ -64,7 +64,7 @@ export const addUser: RequestHandler[] = [
       min: CONFIG.pwdMinLength,
     }),
   ]),
-  validationHandler,
+  handleValidation,
 
   // controller
   async (req, res, next) => {
@@ -89,7 +89,7 @@ export const editUser: RequestHandler[] = [
     body("usrName", ERROR_MESSAGES.usrName).isAlpha().optional(),
     body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail().optional(),
   ]),
-  validationHandler,
+  handleValidation,
 
   // controller
   (req, res, next) => {
@@ -113,7 +113,7 @@ export const editUserPassword: RequestHandler[] = [
       min: CONFIG.pwdMinLength,
     }),
   ]),
-  validationHandler,
+  handleValidation,
 
   // controller
   async (req, res, next) => {
@@ -147,7 +147,7 @@ export const editUserPassword: RequestHandler[] = [
 export const removeUser: RequestHandler[] = [
   // validation
   checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
-  validationHandler,
+  handleValidation,
 
   // controller
   (req, res, next) => {

@@ -1,7 +1,7 @@
 import express from "express";
 import passport from "passport";
 
-import { authenticationHandler } from "./auth.middleware";
+import { handleAuthentication } from "./auth.middleware";
 
 export const authRouter = express.Router();
 
@@ -13,7 +13,7 @@ authRouter.post(
   }
 );
 
-authRouter.use(authenticationHandler);
+authRouter.use(handleAuthentication);
 
 authRouter.post("/logout", (req, res, next) => {
   req.logOut((err) => {

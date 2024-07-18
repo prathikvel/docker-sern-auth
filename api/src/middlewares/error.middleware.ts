@@ -6,7 +6,7 @@ import { CustomError, ClientError, ServerError } from "@/utils/error.util";
  * Handles a request for an invalid resource. Passes a ClientError with 404
  * status to the error handler.
  */
-const notFoundHandler: RequestHandler = (req, res, next) => {
+const handleNotFound: RequestHandler = (req, res, next) => {
   next(new ClientError(404, "Not Found"));
 };
 
@@ -16,7 +16,7 @@ const notFoundHandler: RequestHandler = (req, res, next) => {
  * to the response. Otherwise, all error attributes are passed to the response.
  * Uses the error status if it's set. Otherwise, sets the response status to 500.
  */
-const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
+const handleError: ErrorRequestHandler = (error, req, res, next) => {
   // convert error
   if (!(error instanceof CustomError)) {
     const message = error?.message ?? "Internal error";
@@ -38,4 +38,4 @@ const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
   res.status(error?.status ?? 500).json({ error });
 };
 
-export default [notFoundHandler, errorHandler];
+export default [handleNotFound, handleError];

@@ -5,8 +5,8 @@ import { AuthenticationError, AuthorizationError } from "@/utils/error.util";
 import { checkRoleBasedAccess } from "./auth.repository";
 import { CUBAFunction } from "./auth.types";
 
-/** The set of options for the {@link authorizationHandler} middleware. */
-interface AuthorizationHandlerOptions<T> {
+/** The set of options for the {@link handleAuthorization} middleware. */
+interface HandleAuthorizationOptions<T> {
   /** The value of the resource's ID. */
   resourceId?: number | string | null;
   /** An object of all resource's IDs. */
@@ -18,7 +18,7 @@ interface AuthorizationHandlerOptions<T> {
  * the request proceeds. Otherwise, an AuthenticationError is passed to the
  * error handler.
  */
-export const authenticationHandler: RequestHandler = (req, res, next) => {
+export const handleAuthentication: RequestHandler = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
   }
@@ -44,17 +44,17 @@ export const authenticationHandler: RequestHandler = (req, res, next) => {
  *
  * ```
  * // With only role-based access
- * authorizationHandler("item:read");
+ * handleAuthorization("item:read");
  *
  * // With role-based and simple user-based access
- * authorizationHandler("item:read", checkUserBasedAccess);
+ * handleAuthorization("item:read", checkUserBasedAccess);
  *
  * // With role-based and named resourceId for user-based access
- * authorizationHandler("item:read", checkUserBasedAccess, { resourceId: 1 });
+ * handleAuthorization("item:read", checkUserBasedAccess, { resourceId: 1 });
  *
  * // ...or using a named resourceId with a more common scenario
  * (req, res, next) => {
- *   return authorizationHandler("item:read", checkUserBasedAccess, {
+ *   return handleAuthorization("item:read", checkUserBasedAccess, {
  *     resourceId: req.params.itemId, // resourceId will be parsed to a number
  *   });
  * }
@@ -62,7 +62,7 @@ export const authenticationHandler: RequestHandler = (req, res, next) => {
  * // With role-based and named resourceIds for user-based access
  * (req, res, next) => {
  *   const { itemId, anotherId } = req.params;
- *   return authorizationHandler("item:read", checkUserBasedAccess, {
+ *   return handleAuthorization("item:read", checkUserBasedAccess, {
  *     // resourceIds will NOT be parsed to a number
  *     resourceIds: { itemId: Number(itemId), anotherId: Number(anotherId) },
  *   });
@@ -73,10 +73,10 @@ export const authenticationHandler: RequestHandler = (req, res, next) => {
  * @param checkUserBasedAccess The function to check user-based access
  * @param options A set of custom options, including a custom resourceId
  */
-export const authorizationHandler = <T>(
+export const handleAuthorization = <T>(
   permissionName: string,
   checkUserBasedAccess?: CUBAFunction<T>,
-  options: AuthorizationHandlerOptions<T> = {}
+  options: HandleAuthorizationOptions<T> = {}
 ): RequestHandler => {
   return async (req, res, next) => {
     const { usrId } = req.user!;

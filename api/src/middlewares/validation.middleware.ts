@@ -7,7 +7,7 @@ import { ClientError } from "@/utils/error.util";
  * A middleware that checks if there are validation errors. If there errors,
  * a ClientError is passed to the error handler. Otherwise, the request proceeds.
  */
-export const validationHandler: RequestHandler = (req, res, next) => {
+export const handleValidation: RequestHandler = (req, res, next) => {
   const errors = validationResult(req).formatWith((error) => {
     const { msg: message, ...rest } = error;
     switch (error.type) {

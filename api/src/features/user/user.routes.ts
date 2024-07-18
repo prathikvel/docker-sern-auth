@@ -1,6 +1,6 @@
 import express, { RequestHandler } from "express";
 
-import { authorizationHandler } from "../auth";
+import { handleAuthorization } from "../auth";
 import {
   getCurrentUser,
   getUserById,
@@ -18,18 +18,18 @@ export const userRouter = express.Router();
 userRouter.get("/current", getCurrentUser);
 userRouter.get(
   "/:id",
-  authorizationHandler("user:read", checkUserBasedAccess),
+  handleAuthorization("user:read", checkUserBasedAccess),
   getUserById
 );
-userRouter.get("/", authorizationHandler("user:read"), getUsers);
+userRouter.get("/", handleAuthorization("user:read"), getUsers);
 
 // add user
-userRouter.post("/", authorizationHandler("user:create"), addUser);
+userRouter.post("/", handleAuthorization("user:create"), addUser);
 
 // edit user
 userRouter.put(
   "/:id",
-  authorizationHandler("user:update", checkUserBasedAccess),
+  handleAuthorization("user:update", checkUserBasedAccess),
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
@@ -43,6 +43,6 @@ userRouter.put("/:id", editUserPassword);
 // remove user
 userRouter.delete(
   "/:id",
-  authorizationHandler("user:delete", checkUserBasedAccess),
+  handleAuthorization("user:delete", checkUserBasedAccess),
   removeUser
 );
