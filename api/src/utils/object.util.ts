@@ -1,5 +1,4 @@
-/** Identity type to force expansion of Pick<T, K>. */
-type Id<T extends object> = {} & { [P in keyof T]: T[P] };
+import { Id } from "@/utils/types.util";
 
 /**
  * Picks a set of properties from the object.
