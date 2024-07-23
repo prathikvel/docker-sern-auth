@@ -1,13 +1,7 @@
-import type {
-  ColumnType,
-  Generated,
-  Selectable,
-  Insertable,
-  Updateable,
-} from "kysely";
+import type { ColumnType, Selectable, Insertable, Updateable } from "kysely";
 
 export interface UserTable {
-  usrId: Generated<number>;
+  usrId: number;
   usrName: string;
   usrEmail: string;
   usrPassword: string;

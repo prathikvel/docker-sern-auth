@@ -1,13 +1,7 @@
-import type {
-  ColumnType,
-  Generated,
-  Selectable,
-  Insertable,
-  Updateable,
-} from "kysely";
+import type { ColumnType, Selectable, Insertable, Updateable } from "kysely";
 
 export interface RoleTable {
-  rolId: Generated<number>;
+  rolId: number;
   rolName: string;
   rolCreated: ColumnType<Date, Date | undefined, never>;
 }
