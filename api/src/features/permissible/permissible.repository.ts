@@ -1,6 +1,10 @@
 import { db } from "@/configs/database.config";
 
-import { Permissible, NewPermissible } from "./permissible.model";
+import {
+  Permissible,
+  NewPermissible,
+  PermissibleUpdate,
+} from "./permissible.model";
 
 /**
  * Returns the permissible or undefined if the given `id` is invalid.
@@ -22,13 +26,34 @@ export const findPermissibleById = (id: number) => {
  * @returns The newly created permissible
  * @throws NoResultError if the permissible was unable to be created
  */
-export const createPermissible = async (permissible: NewPermissible = {}) => {
+export const createPermissible = async (permissible: NewPermissible) => {
   const { insertId } = await db
     .insertInto("permissible")
     .values(permissible)
     .executeTakeFirstOrThrow();
 
   return { pblId: Number(insertId!) } as Permissible;
+};
+
+/**
+ * Updates the permissible with given `id` and returns the updated permissible
+ * with {@link findPermissibleById}. Returns undefined if the `id` is invalid.
+ *
+ * @param id The permissible's `pblId`
+ * @param updateWith The permissible fields to update with
+ * @returns The updated permissible or undefined if the given `id` is invalid
+ */
+export const updatePermissible = async (
+  id: number,
+  updateWith: PermissibleUpdate
+) => {
+  await db
+    .updateTable("permissible")
+    .set(updateWith)
+    .where("pblId", "=", id)
+    .execute();
+
+  return findPermissibleById(updateWith.pblId ?? id);
 };
 
 /**
