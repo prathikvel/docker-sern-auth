@@ -8,7 +8,7 @@ import {
 } from "./permission.model";
 
 /** The columns to filter, including all permission columns. */
-const columns = ["perId", "perName", "perCreated"] as const;
+const columns = ["perId", "perName", "perEntity", "perCreated"] as const;
 
 /**
  * The generic function to find a permission based on a criterion.
@@ -37,13 +37,21 @@ const findPermission = <K extends keyof Permission>(
 export const findPermissionById = (id: number) => findPermission("perId", id);
 
 /**
- * Returns the permission or undefined if the given `name` is invalid.
+ * Returns the permission or undefined if the given `name` or `entity` is
+ * invalid.
  *
  * @param name The permission's `perName`
- * @returns The permission or undefined if the given `name` is invalid
+ * @param entity The permission's `perEntity`
+ * @returns The permission or undefined if the given parameters are invalid
  */
-export const findPermissionByName = (name: string) =>
-  findPermission("perName", name);
+export const findPermissionByNameEntity = (name: string, entity: number) => {
+  const query = db
+    .selectFrom("permission")
+    .where("perName", "=", name)
+    .where("perEntity", "=", entity);
+
+  return query.selectAll().executeTakeFirst();
+};
 
 /**
  * Returns an array of permissions that match the given criteria. Returns all
