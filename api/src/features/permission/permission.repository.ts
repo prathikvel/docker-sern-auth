@@ -44,11 +44,14 @@ export const findPermissionById = (id: number) => findPermission("perId", id);
  * @param entity The permission's `perEntity`
  * @returns The permission or undefined if the given parameters are invalid
  */
-export const findPermissionByNameEntity = (name: string, entity: number) => {
+export const findPermissionByNameEntity = (
+  name: string,
+  entity: number | null
+) => {
   const query = db
     .selectFrom("permission")
     .where("perName", "=", name)
-    .where("perEntity", "=", entity);
+    .where("perEntity", entity === null ? "is" : "=", entity);
 
   return query.selectAll().executeTakeFirst();
 };
@@ -62,9 +65,16 @@ export const findPermissionByNameEntity = (name: string, entity: number) => {
  * @returns An array of permissions that match the given criteria
  */
 export const findPermissions = (criteria: Partial<Permission> = {}) => {
-  const query = db
+  const entity = criteria.perEntity;
+  delete criteria.perEntity;
+
+  let query = db
     .selectFrom("permission")
     .where((eb) => eb.and(pick(criteria, columns)));
+
+  if (entity) {
+    query = query.where("perEntity", entity === null ? "is" : "=", entity);
+  }
 
   return query.selectAll().execute();
 };
