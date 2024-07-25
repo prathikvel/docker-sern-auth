@@ -12,8 +12,8 @@ import { Role, NewRole, RoleUpdate } from "./role.model";
 const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
 
 /** The permission columns to select/filter, including the `perId`, `perName`,
- * and `perEntity` permission columns. */
-const permissionColumns = ["perId", "perName", "perEntity"] as const;
+ * and `perPblId` permission columns. */
+const permissionColumns = ["perId", "perName", "perPblId"] as const;
 
 /** The columns to select, including all role columns and the `perId` and
  * `perName` permission columns. */
