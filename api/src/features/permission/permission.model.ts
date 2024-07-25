@@ -9,7 +9,7 @@ import type {
 export interface PermissionTable {
   perId: Generated<number>;
   perName: string;
-  perEntity: number | null;
+  perPblId: number | null;
   perCreated: ColumnType<Date, Date | undefined, never>;
 }
 

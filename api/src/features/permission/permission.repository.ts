@@ -8,7 +8,7 @@ import {
 } from "./permission.model";
 
 /** The columns to filter, including all permission columns. */
-const columns = ["perId", "perName", "perEntity", "perCreated"] as const;
+const columns = ["perId", "perName", "perPblId", "perCreated"] as const;
 
 /**
  * The generic function to find a permission based on a criterion.
@@ -37,21 +37,21 @@ const findPermission = <K extends keyof Permission>(
 export const findPermissionById = (id: number) => findPermission("perId", id);
 
 /**
- * Returns the permission or undefined if the given `name` or `entity` is
+ * Returns the permission or undefined if the given `name` or `pblId` is
  * invalid.
  *
  * @param name The permission's `perName`
- * @param entity The permission's `perEntity`
+ * @param pblId The permission's `perPblId`
  * @returns The permission or undefined if the given parameters are invalid
  */
-export const findPermissionByNameEntity = (
+export const findPermissionByNamePermissible = (
   name: string,
-  entity: number | null
+  pblId: number | null
 ) => {
   const query = db
     .selectFrom("permission")
     .where("perName", "=", name)
-    .where("perEntity", entity === null ? "is" : "=", entity);
+    .where("perPblId", pblId === null ? "is" : "=", pblId);
 
   return query.selectAll().executeTakeFirst();
 };
@@ -65,15 +65,15 @@ export const findPermissionByNameEntity = (
  * @returns An array of permissions that match the given criteria
  */
 export const findPermissions = (criteria: Partial<Permission> = {}) => {
-  const entity = criteria.perEntity;
-  delete criteria.perEntity;
+  const pblId = criteria.perPblId;
+  delete criteria.perPblId;
 
   let query = db
     .selectFrom("permission")
     .where((eb) => eb.and(pick(criteria, columns)));
 
-  if (entity) {
-    query = query.where("perEntity", entity === null ? "is" : "=", entity);
+  if (pblId) {
+    query = query.where("perPblId", pblId === null ? "is" : "=", pblId);
   }
 
   return query.selectAll().execute();

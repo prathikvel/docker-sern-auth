@@ -64,12 +64,12 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `permission` (
   `per_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `per_name` VARCHAR(45) NOT NULL,
-  `per_entity` INT UNSIGNED NULL,
+  `per_pbl_id` INT UNSIGNED NULL,
   `per_created` DATETIME(3) NOT NULL DEFAULT NOW(3),
   PRIMARY KEY (`per_id`),
-  INDEX `fk_per_pbl_idx` (`per_entity` ASC) VISIBLE,
-  UNIQUE INDEX `per_UNIQUE` (`per_name` ASC, `per_entity` ASC) VISIBLE,
-  CONSTRAINT `fk_per_pbl` FOREIGN KEY (`per_entity`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
+  INDEX `fk_per_pbl_idx` (`per_pbl_id` ASC) VISIBLE,
+  UNIQUE INDEX `per_UNIQUE` (`per_name` ASC, `per_pbl_id` ASC) VISIBLE,
+  CONSTRAINT `fk_per_pbl` FOREIGN KEY (`per_pbl_id`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
