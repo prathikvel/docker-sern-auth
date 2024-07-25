@@ -26,7 +26,7 @@ export const findPermissibleById = (id: number) => {
  * @returns The newly created permissible
  * @throws NoResultError if the permissible was unable to be created
  */
-export const createPermissible = async (permissible: NewPermissible) => {
+export const createPermissible = async (permissible: NewPermissible = {}) => {
   const { insertId } = await db
     .insertInto("permissible")
     .values(permissible)

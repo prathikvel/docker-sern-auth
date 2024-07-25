@@ -10,6 +10,7 @@ import {
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
+import { createPermissible, deletePermissible } from "../permissible";
 import { CONFIG, ERROR_MESSAGES } from "./user.constants";
 import {
   findUserById,
@@ -72,7 +73,9 @@ export const addUser: RequestHandler[] = [
       req.body.usrPassword,
       CONFIG.pwdSaltRounds
     );
-    createUser(req.body)
+
+    const { pblId: usrId } = await createPermissible();
+    createUser({ usrId, ...req.body })
       .then(respondRepository(res, { status: 201 }))
       .catch(handleRepositoryError(next));
   },
@@ -154,6 +157,7 @@ export const removeUser: RequestHandler[] = [
     const id = Number(req.params.id);
     deleteUser(id)
       .then(respondRepositoryOrThrow(res))
+      .then(() => deletePermissible(id))
       .catch(handleRepositoryError(next));
   },
 ];
