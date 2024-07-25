@@ -5,9 +5,8 @@ import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
-import { createPermissible, deletePermissible } from "../permissible";
 import { Role } from "../role";
-import { User, NewUserGenId, UserUpdate } from "./user.model";
+import { User, NewUser, UserUpdate } from "./user.model";
 
 /** The user columns to select/filter, including all the user columns except
  * `usrPassword`. */
@@ -134,12 +133,10 @@ export const findUsers = (criteria: Partial<User & Role> = {}) => {
  * @returns The newly created user
  * @throws NoResultError if the user was unable to be created
  */
-export const createUser = async (user: NewUserGenId) => {
-  const { pblId: usrId } = await createPermissible({ pblId: user.usrId });
-
+export const createUser = async (user: NewUser) => {
   const { insertId } = await db
     .insertInto("user")
-    .values({ usrId, ...user })
+    .values(user)
     .executeTakeFirstOrThrow();
 
   return findUserById(Number(insertId!));
@@ -174,7 +171,7 @@ export const deleteUser = async (id: number) => {
   const user = await findUserById(id);
 
   if (user) {
-    await deletePermissible(id);
+    await db.deleteFrom("user").where("usrId", "=", id).execute();
   }
 
   return user;

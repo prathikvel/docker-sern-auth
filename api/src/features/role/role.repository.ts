@@ -5,16 +5,15 @@ import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
-import { createPermissible, deletePermissible } from "../permissible";
 import { Permission } from "../permission";
-import { Role, NewRoleGenId, RoleUpdate } from "./role.model";
+import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
 const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
 
-/** The permission columns to select/filter, including the `perId` and
- * `perName` permission columns. */
-const permissionColumns = ["perId", "perName"] as const;
+/** The permission columns to select/filter, including the `perId`, `perName`,
+ * and `perEntity` permission columns. */
+const permissionColumns = ["perId", "perName", "perEntity"] as const;
 
 /** The columns to select, including all role columns and the `perId` and
  * `perName` permission columns. */
@@ -108,12 +107,10 @@ export const findRoles = (criteria: Partial<Role & Permission> = {}) => {
  * @returns The newly created role
  * @throws NoResultError if the role was unable to be created
  */
-export const createRole = async (role: NewRoleGenId) => {
-  const { pblId: rolId } = await createPermissible({ pblId: role.rolId });
-
+export const createRole = async (role: NewRole) => {
   const { insertId } = await db
     .insertInto("role")
-    .values({ rolId, ...role })
+    .values(role)
     .executeTakeFirstOrThrow();
 
   return findRoleById(Number(insertId!));
@@ -148,7 +145,7 @@ export const deleteRole = async (id: number) => {
   const role = await findRoleById(id);
 
   if (role) {
-    await deletePermissible(id);
+    await db.deleteFrom("role").where("rolId", "=", id).execute();
   }
 
   return role;
