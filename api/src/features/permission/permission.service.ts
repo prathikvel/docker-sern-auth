@@ -1,3 +1,4 @@
+import { Permission } from "./permission.model";
 import { createPermission } from "./permission.repository";
 
 /**
@@ -8,9 +9,14 @@ import { createPermission } from "./permission.repository";
  */
 export const generateEntitySetPermissions = async (name: string) => {
   const types = ["create", "read", "update", "delete", "share"];
+
+  const permissions: (Permission | undefined)[] = [];
   for (const type of types) {
-    await createPermission({ perName: `${name}:${type}`, perEntity: null });
+    const perName = `${name}:${type}`;
+    permissions.push(await createPermission({ perName, perPblId: null }));
   }
+
+  return permissions;
 };
 
 /**
@@ -21,7 +27,12 @@ export const generateEntitySetPermissions = async (name: string) => {
  */
 export const generateEntityPermissions = async (name: string, id: number) => {
   const types = ["read", "update", "delete", "share"];
+
+  const permissions: (Permission | undefined)[] = [];
   for (const type of types) {
-    await createPermission({ perName: `${name}:${type}`, perEntity: id });
+    const perName = `${name}:${type}`;
+    permissions.push(await createPermission({ perName, perPblId: id }));
   }
+
+  return permissions;
 };
