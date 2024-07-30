@@ -4,8 +4,9 @@ import { jsonArrayFrom } from "kysely/helpers/mysql";
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
+import { convertCamelToSnake } from "@/utils/string.util";
 
-import { Permission } from "../permission";
+import { Permission, normalizePermission } from "../permission";
 import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
@@ -37,7 +38,7 @@ const columnsToSelect = [
  * @param criterionValue The value of the criterion
  * @returns The role or undefined if the given `criterionValue` is invalid
  */
-const findRole = <K extends keyof Role>(
+const findRole = async <K extends keyof Role>(
   criterion: K,
   criterionValue: Role[K]
 ) => {
@@ -45,7 +46,12 @@ const findRole = <K extends keyof Role>(
     .selectFrom("role")
     .where(criterion, "=", criterionValue as any);
 
-  return query.select(columnsToSelect).executeTakeFirst();
+  const role = await query.select(columnsToSelect).executeTakeFirst();
+  if (role) {
+    const { permissions } = role;
+    role.permissions = permissions.map((v) => normalizePermission(v)) as any;
+  }
+  return role;
 };
 
 /**
@@ -72,7 +78,7 @@ export const findRoleByName = (name: string) => findRole("rolName", name);
  * @param criteria An object of role or permission fields to match with
  * @returns An array of roles, and their permissions, that match given criteria
  */
-export const findRoles = (criteria: Partial<Role & Permission> = {}) => {
+export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
   let query = db
     .selectFrom("role")
     .where((eb) => eb.and(pick(criteria, roleColumns)));
@@ -82,6 +88,8 @@ export const findRoles = (criteria: Partial<Role & Permission> = {}) => {
   );
 
   if (withPermissionCriteria) {
+    criteria.perName = convertCamelToSnake(criteria.perName);
+
     query = query.where((eb) =>
       eb(
         "rolId",
@@ -96,7 +104,12 @@ export const findRoles = (criteria: Partial<Role & Permission> = {}) => {
     );
   }
 
-  return query.select(columnsToSelect).execute();
+  const roles = await query.select(columnsToSelect).execute();
+  for (const role of roles) {
+    const { permissions } = role;
+    role.permissions = permissions.map((v) => normalizePermission(v)) as any;
+  }
+  return roles;
 };
 
 /**

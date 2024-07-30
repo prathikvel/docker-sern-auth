@@ -1,5 +1,6 @@
 import { db } from "@/configs/database.config";
 import { pick } from "@/utils/object.util";
+import { convertCamelToSnake, convertSnakeToCamel } from "@/utils/string.util";
 
 import {
   Permission,
@@ -10,6 +11,28 @@ import {
 /** The columns to filter, including all permission columns. */
 const columns = ["perId", "perName", "perPblId", "perCreated"] as const;
 
+/** The function signatures for {@link normalizePermission}. */
+type NormalizeFunction = {
+  (permission?: Permission): Permission | undefined;
+  (permission?: Partial<Permission>): Partial<Permission> | undefined;
+};
+
+/**
+ * Normalizes the given permission by converting the entity set of `perName`
+ * from snake_case to camelCase.
+ *
+ * @param permission The permission to normalize
+ * @returns The normalized permission with `perName` converted to camelCase
+ */
+export const normalizePermission: NormalizeFunction = (permission: any) => {
+  if (permission) {
+    const [entitySet, type] = permission.perName.split(":");
+    permission.perName = `${convertSnakeToCamel(entitySet)}:${type}`;
+  }
+
+  return permission;
+};
+
 /**
  * The generic function to find a permission based on a criterion.
  *
@@ -17,7 +40,7 @@ const columns = ["perId", "perName", "perPblId", "perCreated"] as const;
  * @param criterionValue The value of the criterion
  * @returns The permission or undefined if the given `criterionValue` is invalid
  */
-const findPermission = <K extends keyof Permission>(
+const findPermission = async <K extends keyof Permission>(
   criterion: K,
   criterionValue: Permission[K]
 ) => {
@@ -25,7 +48,7 @@ const findPermission = <K extends keyof Permission>(
     .selectFrom("permission")
     .where(criterion, "=", criterionValue as any);
 
-  return query.selectAll().executeTakeFirst();
+  return normalizePermission(await query.selectAll().executeTakeFirst());
 };
 
 /**
@@ -44,16 +67,16 @@ export const findPermissionById = (id: number) => findPermission("perId", id);
  * @param pblId The permission's `perPblId`
  * @returns The permission or undefined if the given parameters are invalid
  */
-export const findPermissionByNamePermissible = (
+export const findPermissionByNamePermissible = async (
   name: string,
   pblId: number | null
 ) => {
   const query = db
     .selectFrom("permission")
-    .where("perName", "=", name)
+    .where("perName", "=", convertCamelToSnake(name))
     .where("perPblId", pblId === null ? "is" : "=", pblId);
 
-  return query.selectAll().executeTakeFirst();
+  return normalizePermission(await query.selectAll().executeTakeFirst());
 };
 
 /**
@@ -64,9 +87,9 @@ export const findPermissionByNamePermissible = (
  * @param criteria An object of permission fields to match with
  * @returns An array of permissions that match the given criteria
  */
-export const findPermissions = (criteria: Partial<Permission> = {}) => {
-  const pblId = criteria.perPblId;
-  delete criteria.perPblId;
+export const findPermissions = async (criteria: Partial<Permission> = {}) => {
+  const { perId, perName, perPblId: pblId, perCreated } = criteria;
+  criteria = { perId, perName: convertCamelToSnake(perName), perCreated };
 
   let query = db
     .selectFrom("permission")
@@ -76,7 +99,8 @@ export const findPermissions = (criteria: Partial<Permission> = {}) => {
     query = query.where("perPblId", pblId === null ? "is" : "=", pblId);
   }
 
-  return query.selectAll().execute();
+  const permissions = await query.selectAll().execute();
+  return permissions.map((v) => normalizePermission(v));
 };
 
 /**
@@ -89,6 +113,8 @@ export const findPermissions = (criteria: Partial<Permission> = {}) => {
  * @throws NoResultError if the permission was unable to be created
  */
 export const createPermission = async (permission: NewPermission) => {
+  permission.perName = convertCamelToSnake(permission.perName);
+
   const { insertId } = await db
     .insertInto("permission")
     .values(permission)
@@ -109,6 +135,8 @@ export const updatePermission = async (
   id: number,
   updateWith: PermissionUpdate
 ) => {
+  updateWith.perName = convertCamelToSnake(updateWith.perName);
+
   await db
     .updateTable("permission")
     .set(updateWith)
