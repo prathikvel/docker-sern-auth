@@ -4,9 +4,12 @@ import { jsonArrayFrom } from "kysely/helpers/mysql";
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
-import { convertCamelToSnake } from "@/utils/string.util";
 
-import { Permission, normalizePermission } from "../permission";
+import {
+  Permission,
+  convertToDbPermission,
+  convertToJsPermission,
+} from "../permission";
 import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
@@ -14,7 +17,7 @@ const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
 
 /** The permission columns to select/filter, including the `perId`, `perName`,
  * and `perPblId` permission columns. */
-const permissionColumns = ["perId", "perName", "perPblId"] as const;
+const permissionColumns = ["perId", "perSet", "perType", "perEntity"] as const;
 
 /** The columns to select, including all role columns and the `perId` and
  * `perName` permission columns. */
@@ -48,8 +51,7 @@ const findRole = async <K extends keyof Role>(
 
   const role = await query.select(columnsToSelect).executeTakeFirst();
   if (role) {
-    const { permissions } = role;
-    role.permissions = permissions.map((v) => normalizePermission(v)) as any;
+    role.permissions = role.permissions.map((v) => convertToJsPermission(v));
   }
   return role;
 };
@@ -88,8 +90,6 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
   );
 
   if (withPermissionCriteria) {
-    criteria.perName = convertCamelToSnake(criteria.perName);
-
     query = query.where((eb) =>
       eb(
         "rolId",
@@ -98,7 +98,9 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
           .selectFrom("rolePermission")
           .whereRef("rlpRolId", "=", "rolId")
           .innerJoin("permission", "perId", "rlpPerId")
-          .where((eb) => eb.and(pick(criteria, permissionColumns)))
+          .where((eb) =>
+            eb.and(pick(convertToDbPermission(criteria), permissionColumns))
+          )
           .select("rlpRolId")
       )
     );
@@ -106,8 +108,7 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
 
   const roles = await query.select(columnsToSelect).execute();
   for (const role of roles) {
-    const { permissions } = role;
-    role.permissions = permissions.map((v) => normalizePermission(v)) as any;
+    role.permissions = role.permissions.map((v) => convertToJsPermission(v));
   }
   return roles;
 };
