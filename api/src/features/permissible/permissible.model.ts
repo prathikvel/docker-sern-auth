@@ -5,6 +5,5 @@ export interface PermissibleTable {
 }
 
 export type Permissible = Selectable<PermissibleTable>;
-export type PermissibleIds = Pick<Permissible, "pblId">;
 export type NewPermissible = Insertable<PermissibleTable>;
 export type PermissibleUpdate = Updateable<PermissibleTable>;
