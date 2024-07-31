@@ -5,6 +5,17 @@ USE `db`;
 
 
 -- -----------------------------------------------------
+-- Table `entity_set`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `entity_set` (
+  `set_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `set_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`set_id`),
+  UNIQUE INDEX `set_name_UNIQUE` (`set_name` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `permissible`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `permissible` (
@@ -25,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`usr_id`),
   INDEX `fk_usr_pbl_idx` (`usr_id` ASC) VISIBLE,
   UNIQUE INDEX `usr_email_UNIQUE` (`usr_email` ASC) VISIBLE,
-  CONSTRAINT `fk_usr_pbl` FOREIGN KEY (`usr_id`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
+  CONSTRAINT `fk_usr_pbl` FOREIGN KEY (`usr_id`) REFERENCES `permissible` (`pbl_id`))
 ENGINE = InnoDB;
 
 
@@ -39,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `role` (
   PRIMARY KEY (`rol_id`),
   INDEX `fk_rol_pbl_idx` (`rol_id` ASC) VISIBLE,
   UNIQUE INDEX `rol_name_UNIQUE` (`rol_name` ASC) VISIBLE,
-  CONSTRAINT `fk_rol_pbl` FOREIGN KEY (`rol_id`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
+  CONSTRAINT `fk_rol_pbl` FOREIGN KEY (`rol_id`) REFERENCES `permissible` (`pbl_id`))
 ENGINE = InnoDB;
 
 
@@ -59,17 +70,33 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `permission_type`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `permission_type` (
+  `prt_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `prt_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`prt_id`),
+  UNIQUE INDEX `prt_name_UNIQUE` (`prt_name` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `permission`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `permission` (
   `per_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `per_name` VARCHAR(45) NOT NULL,
-  `per_pbl_id` INT UNSIGNED NULL,
+  `per_set` VARCHAR(45) NOT NULL,
+  `per_type` VARCHAR(45) NOT NULL,
+  `per_entity` INT UNSIGNED NULL DEFAULT NULL,
   `per_created` DATETIME(3) NOT NULL DEFAULT NOW(3),
   PRIMARY KEY (`per_id`),
-  INDEX `fk_per_pbl_idx` (`per_pbl_id` ASC) VISIBLE,
-  UNIQUE INDEX `per_UNIQUE` (`per_name` ASC, `per_pbl_id` ASC) VISIBLE,
-  CONSTRAINT `fk_per_pbl` FOREIGN KEY (`per_pbl_id`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
+  INDEX `fk_per_set_idx` (`per_set` ASC) VISIBLE,
+  INDEX `fk_per_prt_idx` (`per_type` ASC) VISIBLE,
+  INDEX `fk_per_pbl_idx` (`per_entity` ASC) VISIBLE,
+  UNIQUE INDEX `per_UNIQUE` (`per_set` ASC, `per_type` ASC, `per_entity` ASC) VISIBLE,
+  CONSTRAINT `fk_per_set` FOREIGN KEY (`per_set`) REFERENCES `entity_set` (`set_name`),
+  CONSTRAINT `fk_per_prt` FOREIGN KEY (`per_type`) REFERENCES `permission_type` (`prt_name`),
+  CONSTRAINT `fk_per_pbl` FOREIGN KEY (`per_entity`) REFERENCES `permissible` (`pbl_id`) ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
