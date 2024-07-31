@@ -157,7 +157,7 @@ export const updateUser = async (id: number, updateWith: UserUpdate) => {
     .where("usrId", "=", id)
     .execute();
 
-  return findUserById(id);
+  return findUserById(updateWith.usrId ?? id);
 };
 
 /**

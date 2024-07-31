@@ -85,7 +85,10 @@ export const updateRolePermission = async (
     .where("rlpPerId", "=", perId)
     .execute();
 
-  return findRolePermissionById(rolId, perId);
+  return findRolePermissionById(
+    updateWith.rlpRolId ?? rolId,
+    updateWith.rlpPerId ?? perId
+  );
 };
 
 /**

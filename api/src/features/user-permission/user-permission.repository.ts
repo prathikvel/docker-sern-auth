@@ -85,7 +85,10 @@ export const updateUserPermission = async (
     .where("urpPerId", "=", perId)
     .execute();
 
-  return findUserPermissionById(usrId, perId);
+  return findUserPermissionById(
+    updateWith.urpUsrId ?? usrId,
+    updateWith.urpPerId ?? perId
+  );
 };
 
 /**

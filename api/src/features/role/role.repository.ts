@@ -145,7 +145,7 @@ export const updateRole = async (id: number, updateWith: RoleUpdate) => {
     .where("rolId", "=", id)
     .execute();
 
-  return findRoleById(id);
+  return findRoleById(updateWith.rolId ?? id);
 };
 
 /**

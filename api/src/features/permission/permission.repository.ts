@@ -157,7 +157,7 @@ export const updatePermission = async (
     .where("perId", "=", id)
     .execute();
 
-  return findPermissionById(id);
+  return findPermissionById(updateWith.perId ?? id);
 };
 
 /**

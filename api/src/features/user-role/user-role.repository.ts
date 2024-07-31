@@ -74,7 +74,10 @@ export const updateUserRole = async (
     .where("urlRolId", "=", rolId)
     .execute();
 
-  return findUserRoleById(usrId, rolId);
+  return findUserRoleById(
+    updateWith.urlUsrId ?? usrId,
+    updateWith.urlRolId ?? rolId
+  );
 };
 
 /**

@@ -93,7 +93,7 @@ export const updateEntitySet = async (
     .where("setId", "=", id)
     .execute();
 
-  return findEntitySetById(id);
+  return findEntitySetById(updateWith.setId ?? id);
 };
 
 /**

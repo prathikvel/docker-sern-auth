@@ -101,7 +101,7 @@ export const updatePermissionType = async (
     .where("prtId", "=", id)
     .execute();
 
-  return findPermissionTypeById(id);
+  return findPermissionTypeById(updateWith.prtId ?? id);
 };
 
 /**
