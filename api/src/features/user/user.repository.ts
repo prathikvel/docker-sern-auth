@@ -134,12 +134,9 @@ export const findUsers = (criteria: Partial<User & Role> = {}) => {
  * @throws NoResultError if the user was unable to be created
  */
 export const createUser = async (user: NewUser) => {
-  const { insertId } = await db
-    .insertInto("user")
-    .values(user)
-    .executeTakeFirstOrThrow();
+  await db.insertInto("user").values(user).executeTakeFirstOrThrow();
 
-  return findUserById(Number(insertId!));
+  return findUserById(user.usrId);
 };
 
 /**

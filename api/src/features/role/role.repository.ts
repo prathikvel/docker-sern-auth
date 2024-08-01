@@ -122,12 +122,9 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
  * @throws NoResultError if the role was unable to be created
  */
 export const createRole = async (role: NewRole) => {
-  const { insertId } = await db
-    .insertInto("role")
-    .values(role)
-    .executeTakeFirstOrThrow();
+  await db.insertInto("role").values(role).executeTakeFirstOrThrow();
 
-  return findRoleById(Number(insertId!));
+  return findRoleById(role.rolId);
 };
 
 /**
