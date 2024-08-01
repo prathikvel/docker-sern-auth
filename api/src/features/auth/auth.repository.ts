@@ -7,14 +7,16 @@ import { db } from "@/configs/database.config";
  * Returns true if the user has role-based access and false otherwise.
  *
  * @param usrId The user's `usrId`
- * @param perName The permission's `perName`
- * @param perPblId The permission's `perPblId`
+ * @param perSet The permission's `perSet`
+ * @param perType The permission's `perType`
+ * @param perEntity The permission's `perEntity`
  * @returns A boolean representing the user's role-based access to the permission
  */
 export const checkRoleBasedAccess = async (
   usrId: number,
-  perName: string,
-  perPblId: number | null
+  perSet: string,
+  perType: string,
+  perEntity: number | null
 ) => {
   const query = db.selectNoFrom((eb) =>
     eb
@@ -25,9 +27,13 @@ export const checkRoleBasedAccess = async (
           .innerJoin("rolePermission", "rlpRolId", "urlRolId")
           .innerJoin("permission", "perId", "rlpPerId")
           .where("usrId", "=", usrId)
-          .where("perName", "=", perName)
+          .where("perSet", "=", perSet)
+          .where("perType", "=", perType)
           .where((eb) =>
-            eb.or([eb("perPblId", "is", null), eb("perPblId", "=", perPblId)])
+            eb.or([
+              eb("perEntity", "is", null),
+              eb("perEntity", "=", perEntity),
+            ])
           )
           .select(sql`1` as any)
       )
@@ -42,14 +48,16 @@ export const checkRoleBasedAccess = async (
  * permissions. Returns true if user has user-based access and false otherwise.
  *
  * @param usrId The user's `usrId`
- * @param perName The permission's `perName`
- * @param perPblId The permission's `perPblId`
+ * @param perSet The permission's `perSet`
+ * @param perType The permission's `perType`
+ * @param perEntity The permission's `perEntity`
  * @returns A boolean representing the user's user-based access to the permission
  */
 export const checkUserBasedAccess = async (
   usrId: number,
-  perName: string,
-  perPblId: number | null
+  perSet: string,
+  perType: string,
+  perEntity: number | null
 ) => {
   const query = db.selectNoFrom((eb) =>
     eb
@@ -59,9 +67,13 @@ export const checkUserBasedAccess = async (
           .innerJoin("userPermission", "urpUsrId", "usrId")
           .innerJoin("permission", "perId", "urpPerId")
           .where("usrId", "=", usrId)
-          .where("perName", "=", perName)
+          .where("perSet", "=", perSet)
+          .where("perType", "=", perType)
           .where((eb) =>
-            eb.or([eb("perPblId", "is", null), eb("perPblId", "=", perPblId)])
+            eb.or([
+              eb("perEntity", "is", null),
+              eb("perEntity", "=", perEntity),
+            ])
           )
           .select(sql`1` as any)
       )

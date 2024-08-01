@@ -15,16 +15,16 @@ export const userRouter = express.Router();
 
 // get user
 userRouter.get("/current", getCurrentUser);
-userRouter.get("/:id", handleAuthorization("user:read"), getUserById);
-userRouter.get("/", handleAuthorization("user:read"), getUsers);
+userRouter.get("/:id", handleAuthorization("user", "read"), getUserById);
+userRouter.get("/", handleAuthorization("user", "read"), getUsers);
 
 // add user
-userRouter.post("/", handleAuthorization("user:create"), addUser);
+userRouter.post("/", handleAuthorization("user", "create"), addUser);
 
 // edit user
 userRouter.put(
   "/:id",
-  handleAuthorization("user:update"),
+  handleAuthorization("user", "update"),
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
@@ -36,4 +36,4 @@ userRouter.put(
 userRouter.put("/:id", editUserPassword);
 
 // remove user
-userRouter.delete("/:id", handleAuthorization("user:delete"), removeUser);
+userRouter.delete("/:id", handleAuthorization("user", "delete"), removeUser);

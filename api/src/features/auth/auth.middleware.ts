@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 
+import { EntitySet, PermissionType } from "@/configs/global.config";
 import { AuthenticationError, AuthorizationError } from "@/utils/error.util";
 
 import { checkRoleBasedAccess, checkUserBasedAccess } from "./auth.repository";
@@ -22,52 +23,52 @@ export const handleAuthentication: RequestHandler = (req, res, next) => {
  * access to the given entity. If authorized, the request proceeds. Otherwise,
  * an AuthorizationError is passed to the error handler.
  *
- * If `entityId` isn't defined, the middleware will use `req.param.id` only if
- * `req.param.id` is a number. Otherwise, the middleware will ignore the entity
+ * If `entity` isn't defined, the middleware will use `req.param.id` only if
+ * `req.param.id` is number. Otherwise, the middleware will ignore the entity
  * and will only check for entity set permissions.
  *
  * Here is some example usage:
  *
  * ```
  * // With default entity
- * handleAuthorization("item:read");
+ * handleAuthorization("item", "read");
  *
  * // With a custom entity
- * handleAuthorization("item:read", 1);
+ * handleAuthorization("item", "read", 1);
  *
  * // ...or using a custom entity with a more common scenario
  * (req, res, next) => {
- *   return handleAuthorization("item:read", Number(req.params.itemId));
+ *   return handleAuthorization("item", "read", Number(req.params.itemId));
  * }
  * ```
  *
- * @param perName The permission name to check access
- * @param entityId The optional entity's ID to check access
+ * @param set The permission set to check access
+ * @param type The permission type to check access
+ * @param entity The optional entity's ID to check access
  */
 export const handleAuthorization = (
-  perName: string,
-  entityId?: number
+  set: EntitySet,
+  type: PermissionType,
+  entity?: number | null
 ): RequestHandler => {
   return async (req, res, next) => {
     const { usrId } = req.user!;
 
     // entity resolution
-    let perPblId = -1;
-    if (entityId) {
-      perPblId = entityId;
+    let resolvedEntity = null;
+    if (entity) {
+      resolvedEntity = entity;
     } else if (!isNaN(Number(req.params.id))) {
-      perPblId = Number(req.params.id);
+      resolvedEntity = Number(req.params.id);
     }
 
     // role-based access
-    const roleBased = await checkRoleBasedAccess(usrId, perName, perPblId);
-    if (roleBased) {
+    if (await checkRoleBasedAccess(usrId, set, type, resolvedEntity)) {
       return next();
     }
 
     // user-based access
-    const userBased = await checkUserBasedAccess(usrId, perName, perPblId);
-    if (userBased) {
+    if (await checkUserBasedAccess(usrId, set, type, resolvedEntity)) {
       return next();
     }
 
