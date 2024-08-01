@@ -1,5 +1,7 @@
 import { db } from "@/configs/database.config";
+import { convertPropForDb, convertPropForJs } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
+import { convertCamelToSnake } from "@/utils/string.util";
 
 import { EntitySet, NewEntitySet, EntitySetUpdate } from "./entity-set.model";
 
@@ -13,7 +15,7 @@ const columns = ["setId", "setName"] as const;
  * @param criterionValue The value of the criterion
  * @returns The entitySet or undefined if the given `criterionValue` is invalid
  */
-const findEntitySet = <K extends keyof EntitySet>(
+const findEntitySet = async <K extends keyof EntitySet>(
   criterion: K,
   criterionValue: EntitySet[K]
 ) => {
@@ -21,7 +23,7 @@ const findEntitySet = <K extends keyof EntitySet>(
     .selectFrom("entitySet")
     .where(criterion, "=", criterionValue as any);
 
-  return query.selectAll().executeTakeFirst();
+  return convertPropForJs(await query.selectAll().executeTakeFirst(), "setName");
 };
 
 /**
@@ -38,8 +40,13 @@ export const findEntitySetById = (id: number) => findEntitySet("setId", id);
  * @param name The entitySet's `setName`
  * @returns The entitySet or undefined if the given `name` is invalid
  */
-export const findEntitySetByName = (name: string) =>
-  findEntitySet("setName", name);
+export const findEntitySetByName = async (name: string) => {
+  const query = db
+    .selectFrom("entitySet")
+    .where("setName", "=", convertCamelToSnake(name));
+
+  return convertPropForJs(await query.selectAll().executeTakeFirst(), "setName");
+};
 
 /**
  * Returns an array of entitySets that match the given criteria. Returns all
@@ -49,12 +56,15 @@ export const findEntitySetByName = (name: string) =>
  * @param criteria An object of entitySet to match with
  * @returns An array of entitySets that match given criteria
  */
-export const findEntitySets = (criteria: Partial<EntitySet> = {}) => {
+export const findEntitySets = async (criteria: Partial<EntitySet> = {}) => {
   const query = db
     .selectFrom("entitySet")
-    .where((eb) => eb.and(pick(criteria, columns)));
+    .where((eb) =>
+      eb.and(pick(convertPropForDb(criteria, "setName"), columns))
+    );
 
-  return query.selectAll().execute();
+  const entitySets = await query.selectAll().execute();
+  return entitySets.map((v) => convertPropForJs(v, "setName"));
 };
 
 /**
@@ -69,7 +79,7 @@ export const findEntitySets = (criteria: Partial<EntitySet> = {}) => {
 export const createEntitySet = async (entitySet: NewEntitySet) => {
   const { insertId } = await db
     .insertInto("entitySet")
-    .values(entitySet)
+    .values(convertPropForDb(entitySet, "setName"))
     .executeTakeFirstOrThrow();
 
   return findEntitySetById(Number(insertId!));
@@ -89,7 +99,7 @@ export const updateEntitySet = async (
 ) => {
   await db
     .updateTable("entitySet")
-    .set(updateWith)
+    .set(convertPropForDb(updateWith, "setName"))
     .where("setId", "=", id)
     .execute();
 

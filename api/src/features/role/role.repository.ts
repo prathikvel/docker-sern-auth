@@ -3,13 +3,10 @@ import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
+import { convertPropForDb, convertPropForJs } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
-import {
-  Permission,
-  convertToDbPermission,
-  convertToJsPermission,
-} from "../permission";
+import { Permission } from "../permission";
 import { Role, NewRole, RoleUpdate } from "./role.model";
 
 /** The role columns to select/filter, including all role columns. */
@@ -51,7 +48,8 @@ const findRole = async <K extends keyof Role>(
 
   const role = await query.select(columnsToSelect).executeTakeFirst();
   if (role) {
-    role.permissions = role.permissions.map((v) => convertToJsPermission(v));
+    const { permissions } = role;
+    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
   }
   return role;
 };
@@ -99,7 +97,9 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
           .whereRef("rlpRolId", "=", "rolId")
           .innerJoin("permission", "perId", "rlpPerId")
           .where((eb) =>
-            eb.and(pick(convertToDbPermission(criteria), permissionColumns))
+            eb.and(
+              pick(convertPropForDb(criteria, "perSet"), permissionColumns)
+            )
           )
           .select("rlpRolId")
       )
@@ -108,7 +108,8 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
 
   const roles = await query.select(columnsToSelect).execute();
   for (const role of roles) {
-    role.permissions = role.permissions.map((v) => convertToJsPermission(v));
+    const { permissions } = role;
+    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
   }
   return roles;
 };

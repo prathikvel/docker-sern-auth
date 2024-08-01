@@ -1,6 +1,7 @@
 import { db } from "@/configs/database.config";
+import { convertPropForDb, convertPropForJs } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
-import { convertCamelToSnake, convertSnakeToCamel } from "@/utils/string.util";
+import { convertCamelToSnake } from "@/utils/string.util";
 
 import {
   Permission,
@@ -17,37 +18,6 @@ const columns = [
   "perCreated",
 ] as const;
 
-/** A type used to assert that the `perSet` property exists. */
-type WithPerSet = { perSet?: Permission["perSet"] } | undefined;
-
-/**
- * Converts `perSet` for the given permission from camelCase to snake_case.
- *
- * @param permission The permission to convert
- * @returns The normalized permission with `perSet` converted to snake_case
- */
-export const convertToDbPermission = <T extends WithPerSet>(permission: T) => {
-  if (permission?.perSet) {
-    permission.perSet = convertCamelToSnake(permission.perSet);
-  }
-
-  return permission;
-};
-
-/**
- * Converts `perSet` for the given permission from snake_case to camelCase.
- *
- * @param permission The permission to convert
- * @returns The normalized permission with `perSet` converted to camelCase
- */
-export const convertToJsPermission = <T extends WithPerSet>(permission: T) => {
-  if (permission?.perSet) {
-    permission.perSet = convertSnakeToCamel(permission.perSet);
-  }
-
-  return permission;
-};
-
 /**
  * The generic function to find a permission based on a criterion.
  *
@@ -63,7 +33,7 @@ const findPermission = async <K extends keyof Permission>(
     .selectFrom("permission")
     .where(criterion, "=", criterionValue as any);
 
-  return convertToJsPermission(await query.selectAll().executeTakeFirst());
+  return convertPropForJs(await query.selectAll().executeTakeFirst(), "perSet");
 };
 
 /**
@@ -94,7 +64,7 @@ export const findPermissionBySetTypeEntity = async (
     .where("perType", "=", type)
     .where("perEntity", entity === null ? "is" : "=", entity);
 
-  return convertToJsPermission(await query.selectAll().executeTakeFirst());
+  return convertPropForJs(await query.selectAll().executeTakeFirst(), "perSet");
 };
 
 /**
@@ -107,7 +77,7 @@ export const findPermissionBySetTypeEntity = async (
  */
 export const findPermissions = async (criteria: Partial<Permission> = {}) => {
   let entity: Permission["perEntity"] | undefined;
-  ({ perEntity: entity, ...criteria } = convertToDbPermission(criteria));
+  ({ perEntity: entity, ...criteria } = convertPropForDb(criteria, "perSet"));
 
   let query = db
     .selectFrom("permission")
@@ -118,7 +88,7 @@ export const findPermissions = async (criteria: Partial<Permission> = {}) => {
   }
 
   const permissions = await query.selectAll().execute();
-  return permissions.map((v) => convertToJsPermission(v));
+  return permissions.map((v) => convertPropForJs(v, "perSet"));
 };
 
 /**
@@ -133,7 +103,7 @@ export const findPermissions = async (criteria: Partial<Permission> = {}) => {
 export const createPermission = async (permission: NewPermission) => {
   const { insertId } = await db
     .insertInto("permission")
-    .values(convertToDbPermission(permission))
+    .values(convertPropForDb(permission, "perSet"))
     .executeTakeFirstOrThrow();
 
   return findPermissionById(Number(insertId!));
@@ -153,7 +123,7 @@ export const updatePermission = async (
 ) => {
   await db
     .updateTable("permission")
-    .set(convertToDbPermission(updateWith))
+    .set(convertPropForDb(updateWith, "perSet"))
     .where("perId", "=", id)
     .execute();
 
