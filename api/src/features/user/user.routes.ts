@@ -1,6 +1,9 @@
 import express, { RequestHandler } from "express";
 
-import { handleAuthorization } from "../auth";
+import {
+  handleEntityAuthorization as handleEntityAuth,
+  handleEntitiesAuthorization as handleEntitiesAuth,
+} from "../auth";
 import {
   getCurrentUser,
   getUserById,
@@ -15,16 +18,16 @@ export const userRouter = express.Router();
 
 // get user
 userRouter.get("/current", getCurrentUser);
-userRouter.get("/:id", handleAuthorization("user", "read"), getUserById);
-userRouter.get("/", handleAuthorization("user", "read"), getUsers);
+userRouter.get("/:id", handleEntityAuth("user", "read"), getUserById);
+userRouter.get("/", handleEntitiesAuth("user", "read"), getUsers);
 
 // add user
-userRouter.post("/", handleAuthorization("user", "create"), addUser);
+userRouter.post("/", handleEntitiesAuth("user", "create", true), addUser);
 
 // edit user
 userRouter.put(
   "/:id",
-  handleAuthorization("user", "update"),
+  handleEntityAuth("user", "update"),
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
@@ -36,4 +39,4 @@ userRouter.put(
 userRouter.put("/:id", editUserPassword);
 
 // remove user
-userRouter.delete("/:id", handleAuthorization("user", "delete"), removeUser);
+userRouter.delete("/:id", handleEntityAuth("user", "delete"), removeUser);
