@@ -126,6 +126,18 @@ export const findUsers = (criteria: Partial<User & Role> = {}) => {
 };
 
 /**
+ * Returns an array of users, and their roles, that have the given `id`s.
+ *
+ * @param ids An array of `userId`s
+ * @returns an array of users, and their roles, that have the given `id`s
+ */
+export const findUsersByIds = (ids: number[]) => {
+  const query = db.selectFrom("user").where("usrId", "in", ids);
+
+  return query.select(columnsToSelect).execute();
+};
+
+/**
  * Inserts a new user in the database and returns the newly created user with
  * {@link findUserById}. Throws a NoResultError if the user couldn't be created.
  *

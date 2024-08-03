@@ -8,7 +8,7 @@ import {
   respondRepositoryOrThrow,
   handleRepositoryError,
 } from "@/utils/controller.util";
-import { ClientError } from "@/utils/error.util";
+import { ClientError, ServerError } from "@/utils/error.util";
 
 import { createPermissible, deletePermissible } from "../permissible";
 import { CONFIG, ERROR_MESSAGES } from "./user.constants";
@@ -16,6 +16,7 @@ import {
   findUserById,
   findUserByIdWithPassword,
   findUsers,
+  findUsersByIds,
   createUser,
   updateUser,
   deleteUser,
@@ -32,7 +33,20 @@ export const getCurrentUser: RequestHandler = (req, res) => {
  * Responds with all system users.
  */
 export const getUsers: RequestHandler = (req, res, next) => {
-  findUsers().then(respondRepository(res)).catch(handleRepositoryError(next));
+  const { authInfo } = res.locals;
+  if (authInfo) {
+    if (authInfo.allEntities) {
+      findUsers()
+        .then(respondRepository(res))
+        .catch(handleRepositoryError(next));
+    } else {
+      findUsersByIds(authInfo.entities)
+        .then(respondRepository(res))
+        .catch(handleRepositoryError(next));
+    }
+  } else {
+    next(new ServerError(500, "Internal error"));
+  }
 };
 
 /**
