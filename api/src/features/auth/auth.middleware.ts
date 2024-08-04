@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 
-import { EntitySet, PermissionType } from "@/configs/global.config";
+import { EntitySetName, PermissionTypeName } from "@/configs/global.config";
 import { AuthenticationError, AuthorizationError } from "@/utils/error.util";
 
 import { checkEntityAccess, findAccessibleEntities } from "./auth.repository";
@@ -51,8 +51,8 @@ export const handleAuthentication: RequestHandler = (req, res, next) => {
  * @param entity The optional entity's ID to check access
  */
 export const handleEntityAuthorization = (
-  set: EntitySet,
-  type: PermissionType,
+  set: EntitySetName,
+  type: PermissionTypeName,
   entity: number | null = null
 ): RequestHandler => {
   return async (req, res, next) => {
@@ -118,9 +118,9 @@ export const handleEntityAuthorization = (
  * @param entitySetAccess If entity set access is required
  */
 export const handleEntitiesAuthorization = (
-  set: EntitySet,
-  type: PermissionType,
-  entitySetAccess = false
+  set: EntitySetName,
+  type: PermissionTypeName,
+  entitySetAccess: boolean = false
 ): RequestHandler => {
   return async (req, res, next) => {
     const { usrId } = req.user!;

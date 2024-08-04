@@ -9,7 +9,7 @@ export const ERRORS = {
 // --------------------------- ENTITY SETS --------------------------
 
 export const ENTITY_SET = {
-  ENTITY_SET_NAMES: [
+  NAMES: [
     "entitySet",
     "permissible",
     "user",
@@ -22,7 +22,7 @@ export const ENTITY_SET = {
   ] as const satisfies (keyof Database)[],
 };
 
-export type EntitySet = (typeof ENTITY_SET.ENTITY_SET_NAMES)[number];
+export type EntitySetName = (typeof ENTITY_SET.NAMES)[number];
 
 // ------------------------------ AUTH ------------------------------
 
@@ -34,16 +34,12 @@ export const AUTH = {
 // --------------------------- PERMISSION ---------------------------
 
 export const PERMISSION = {
-  PERMISSION_TYPE_NAMES: [
-    "create",
-    "read",
-    "update",
-    "delete",
-    "share",
-  ] as const,
+  TYPE: {
+    NAMES: ["create", "read", "update", "delete", "share"] as const,
+  },
 };
 
-export type PermissionType = (typeof PERMISSION.PERMISSION_TYPE_NAMES)[number];
+export type PermissionTypeName = (typeof PERMISSION.TYPE.NAMES)[number];
 
 // ------------------------------ ROLE ------------------------------
 
