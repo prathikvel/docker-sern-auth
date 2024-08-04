@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
 import { checkExact, param, body } from "express-validator";
 
+import { AUTH, USER, ERRORS } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import {
   respondRepository,
@@ -11,7 +12,6 @@ import {
 import { ClientError, ServerError } from "@/utils/error.util";
 
 import { createPermissible, deletePermissible } from "../permissible";
-import { CONFIG, ERROR_MESSAGES } from "./user.constants";
 import {
   findUserById,
   findUserByIdWithPassword,
@@ -45,7 +45,7 @@ export const getUsers: RequestHandler = (req, res, next) => {
         .catch(handleRepositoryError(next));
     }
   } else {
-    next(new ServerError(500, "Internal error"));
+    next(new ServerError(500, ERRORS[500]));
   }
 };
 
@@ -54,7 +54,7 @@ export const getUsers: RequestHandler = (req, res, next) => {
  */
 export const getUserById: RequestHandler[] = [
   // validation
-  checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
+  checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
   handleValidation,
 
   // controller
@@ -73,23 +73,21 @@ export const getUserById: RequestHandler[] = [
 export const addUser: RequestHandler[] = [
   // validation
   checkExact([
-    body("usrName", ERROR_MESSAGES.usrName).isAlpha(),
-    body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail(),
-    body("usrPassword", ERROR_MESSAGES.usrPassword).isLength({
-      min: CONFIG.pwdMinLength,
+    body("usrName", USER.ERRORS.USR_NAME).isAlpha(),
+    body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail(),
+    body("usrPassword", USER.ERRORS.USR_PASSWORD).isLength({
+      min: AUTH.PWD_MIN_LENGTH,
     }),
   ]),
   handleValidation,
 
   // controller
   async (req, res, next) => {
-    req.body.usrPassword = await bcrypt.hash(
-      req.body.usrPassword,
-      CONFIG.pwdSaltRounds
-    );
+    let { usrPassword } = req.body;
+    usrPassword = await bcrypt.hash(usrPassword, AUTH.PWD_SALT_ROUNDS);
 
     const { pblId: usrId } = await createPermissible();
-    createUser({ usrId, ...req.body })
+    createUser({ usrId, ...req.body, usrPassword })
       .then(respondRepository(res, { status: 201 }))
       .catch(handleRepositoryError(next));
   },
@@ -102,9 +100,9 @@ export const addUser: RequestHandler[] = [
 export const editUser: RequestHandler[] = [
   // validation
   checkExact([
-    param("id", ERROR_MESSAGES.usrId).isInt(),
-    body("usrName", ERROR_MESSAGES.usrName).isAlpha().optional(),
-    body("usrEmail", ERROR_MESSAGES.usrEmail).isEmail().optional(),
+    param("id", USER.ERRORS.USR_ID).isInt(),
+    body("usrName", USER.ERRORS.USR_NAME).isAlpha().optional(),
+    body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail().optional(),
   ]),
   handleValidation,
 
@@ -125,9 +123,9 @@ export const editUserPassword: RequestHandler[] = [
   // validation
   checkExact([
     param("id").isInt(),
-    body("oldUsrPassword", ERROR_MESSAGES.oldUsrPassword).notEmpty(),
-    body("newUsrPassword", ERROR_MESSAGES.newUsrPassword).isLength({
-      min: CONFIG.pwdMinLength,
+    body("oldUsrPassword", USER.ERRORS.OLD_USR_PASSWORD).notEmpty(),
+    body("newUsrPassword", USER.ERRORS.NEW_USR_PASSWORD).isLength({
+      min: AUTH.PWD_MIN_LENGTH,
     }),
   ]),
   handleValidation,
@@ -140,17 +138,17 @@ export const editUserPassword: RequestHandler[] = [
     // find given user
     const user = await findUserByIdWithPassword(id);
     if (!user) {
-      return next(new ClientError(406, ERROR_MESSAGES.invalidCredentials));
+      return next(new ClientError(406, USER.ERRORS.INVALID_CREDENTIALS));
     }
 
     // if password matches
     const match = await bcrypt.compare(oldUsrPassword, user.usrPassword!);
     if (!match) {
-      return next(new ClientError(406, ERROR_MESSAGES.invalidCredentials));
+      return next(new ClientError(406, USER.ERRORS.INVALID_CREDENTIALS));
     }
 
     // update new password
-    const usrPassword = await bcrypt.hash(newUsrPassword, CONFIG.pwdSaltRounds);
+    const usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
     updateUser(id, { usrPassword })
       .then(respondRepositoryOrThrow(res))
       .catch(handleRepositoryError(next));
@@ -163,7 +161,7 @@ export const editUserPassword: RequestHandler[] = [
  */
 export const removeUser: RequestHandler[] = [
   // validation
-  checkExact(param("id", ERROR_MESSAGES.usrId).isInt()),
+  checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
   handleValidation,
 
   // controller
