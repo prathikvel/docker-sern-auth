@@ -3,7 +3,7 @@ import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
-import { convertPropForDb, convertPropForJs } from "@/utils/database.util";
+import { convertPropForDb, convertPropForJs } from "@/utils/repository.util";
 import { pick } from "@/utils/object.util";
 
 import { Permission } from "../permission";

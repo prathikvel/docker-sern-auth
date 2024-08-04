@@ -1,5 +1,5 @@
 import { db } from "@/configs/database.config";
-import { convertPropForDb, convertPropForJs } from "@/utils/database.util";
+import { convertPropForDb, convertPropForJs } from "@/utils/repository.util";
 import { pick } from "@/utils/object.util";
 import { convertCamelToSnake } from "@/utils/string.util";
 
