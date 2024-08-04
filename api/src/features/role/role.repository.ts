@@ -12,12 +12,12 @@ import { Role, NewRole, RoleUpdate } from "./role.model";
 /** The role columns to select/filter, including all role columns. */
 const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
 
-/** The permission columns to select/filter, including the `perId`, `perName`,
- * and `perPblId` permission columns. */
+/** The permission columns to select/filter, including the `perId`, `perSet`,
+ * `perType`, and `perEntity` permission columns. */
 const permissionColumns = ["perId", "perSet", "perType", "perEntity"] as const;
 
-/** The columns to select, including all role columns and the `perId` and
- * `perName` permission columns. */
+/** The columns to select, including all role columns and the `perId`, `perSet`,
+ * `perType`, and `perEntity` permission columns. */
 const columnsToSelect = [
   ...roleColumns,
   (eb: ExpressionBuilder<Database, "role">) => {
@@ -105,6 +105,23 @@ export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
       )
     );
   }
+
+  const roles = await query.select(columnsToSelect).execute();
+  for (const role of roles) {
+    const { permissions } = role;
+    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
+  }
+  return roles;
+};
+
+/**
+ * Returns an array of roles, and their permissions, that have the given `id`s.
+ *
+ * @param ids An array of `rolId`s
+ * @returns An array of roles, and their permissions, that have the given `id`s
+ */
+export const findRolesByIds = async (ids: number[]) => {
+  const query = db.selectFrom("role").where("rolId", "in", ids);
 
   const roles = await query.select(columnsToSelect).execute();
   for (const role of roles) {

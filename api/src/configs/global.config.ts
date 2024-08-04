@@ -43,7 +43,12 @@ export type PermissionTypeName = (typeof PERMISSION.TYPE.NAMES)[number];
 
 // ------------------------------ ROLE ------------------------------
 
-export const ROLE = {};
+export const ROLE = {
+  ERRORS: {
+    ROL_ID: "Please enter an integer",
+    ROL_NAME: "Please enter a string that only contains letters",
+  },
+};
 
 // ------------------------------ USER ------------------------------
 
