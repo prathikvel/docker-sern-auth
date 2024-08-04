@@ -128,8 +128,8 @@ export const findUsers = (criteria: Partial<User & Role> = {}) => {
 /**
  * Returns an array of users, and their roles, that have the given `id`s.
  *
- * @param ids An array of `userId`s
- * @returns an array of users, and their roles, that have the given `id`s
+ * @param ids An array of `usrId`s
+ * @returns An array of users, and their roles, that have the given `id`s
  */
 export const findUsersByIds = (ids: number[]) => {
   const query = db.selectFrom("user").where("usrId", "in", ids);
