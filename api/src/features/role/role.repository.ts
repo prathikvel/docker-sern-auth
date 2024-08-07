@@ -1,35 +1,10 @@
-import { ExpressionBuilder } from "kysely";
-import { jsonArrayFrom } from "kysely/helpers/mysql";
-
 import { db } from "@/configs/database.config";
-import { Database } from "@/models";
-import { convertPropForDb, convertPropForJs } from "@/utils/repository.util";
 import { pick } from "@/utils/object.util";
 
-import { Permission } from "../permission";
 import { Role, NewRole, RoleUpdate } from "./role.model";
 
-/** The role columns to select/filter, including all role columns. */
-const roleColumns = ["rolId", "rolName", "rolCreated"] as const;
-
-/** The permission columns to select/filter, including the `perId`, `perSet`,
- * `perType`, and `perEntity` permission columns. */
-const permissionColumns = ["perId", "perSet", "perType", "perEntity"] as const;
-
-/** The columns to select, including all role columns and the `perId`, `perSet`,
- * `perType`, and `perEntity` permission columns. */
-const columnsToSelect = [
-  ...roleColumns,
-  (eb: ExpressionBuilder<Database, "role">) => {
-    return jsonArrayFrom(
-      eb
-        .selectFrom("rolePermission")
-        .whereRef("rlpRolId", "=", "rolId")
-        .innerJoin("permission", "perId", "rlpPerId")
-        .select(permissionColumns)
-    ).as("permissions");
-  },
-] as const;
+/** The columns to filter, including all role columns. */
+const columns = ["rolId", "rolName", "rolCreated"] as const;
 
 /**
  * The generic function to find a role based on a criterion.
@@ -38,7 +13,7 @@ const columnsToSelect = [
  * @param criterionValue The value of the criterion
  * @returns The role or undefined if the given `criterionValue` is invalid
  */
-const findRole = async <K extends keyof Role>(
+const findRole = <K extends keyof Role>(
   criterion: K,
   criterionValue: Role[K]
 ) => {
@@ -46,89 +21,50 @@ const findRole = async <K extends keyof Role>(
     .selectFrom("role")
     .where(criterion, "=", criterionValue as any);
 
-  const role = await query.select(columnsToSelect).executeTakeFirst();
-  if (role) {
-    const { permissions } = role;
-    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
-  }
-  return role;
+  return query.selectAll().executeTakeFirst();
 };
 
 /**
- * Returns the role and its permissions or undefined if given `id` is invalid.
+ * Returns the role or undefined if the given `id` is invalid.
  *
  * @param id The role's `rolId`
- * @returns The role and its permissions or undefined if given `id` is invalid
+ * @returns The role or undefined if the given `id` is invalid
  */
 export const findRoleById = (id: number) => findRole("rolId", id);
 
 /**
- * Returns the role and its permissions or undefined if given `name` is invalid.
+ * Returns the role or undefined if the given `name` is invalid.
  *
  * @param name The role's `rolName`
- * @returns The role and its permissions or undefined if given `name` is invalid
+ * @returns The role or undefined if the given `name` is invalid
  */
 export const findRoleByName = (name: string) => findRole("rolName", name);
 
 /**
- * Returns an array of roles, and their permissions, that match the given
- * criteria. Returns all roles if no criteria are provided. All the criteria
- * will be compared via equality.
+ * Returns an array of roles that match the given criteria. Returns all roles
+ * if no criteria are provided. All the criteria will be compared via equality.
  *
- * @param criteria An object of role or permission fields to match with
- * @returns An array of roles, and their permissions, that match given criteria
+ * @param criteria An object of role fields to match with
+ * @returns An array of roles that match the given criteria
  */
-export const findRoles = async (criteria: Partial<Role & Permission> = {}) => {
-  let query = db
+export const findRoles = (criteria: Partial<Role> = {}) => {
+  const query = db
     .selectFrom("role")
-    .where((eb) => eb.and(pick(criteria, roleColumns)));
+    .where((eb) => eb.and(pick(criteria, columns)));
 
-  const withPermissionCriteria = permissionColumns.some((v) =>
-    Object.hasOwn(criteria, v)
-  );
-
-  if (withPermissionCriteria) {
-    query = query.where((eb) =>
-      eb(
-        "rolId",
-        "in",
-        eb
-          .selectFrom("rolePermission")
-          .whereRef("rlpRolId", "=", "rolId")
-          .innerJoin("permission", "perId", "rlpPerId")
-          .where((eb) =>
-            eb.and(
-              pick(convertPropForDb(criteria, "perSet"), permissionColumns)
-            )
-          )
-          .select("rlpRolId")
-      )
-    );
-  }
-
-  const roles = await query.select(columnsToSelect).execute();
-  for (const role of roles) {
-    const { permissions } = role;
-    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
-  }
-  return roles;
+  return query.selectAll().execute();
 };
 
 /**
- * Returns an array of roles, and their permissions, that have the given `id`s.
+ * Returns an array of roles that have the given `id`s.
  *
  * @param ids An array of `rolId`s
- * @returns An array of roles, and their permissions, that have the given `id`s
+ * @returns An array of roles that have the given `id`s
  */
-export const findRolesByIds = async (ids: number[]) => {
+export const findRolesByIds = (ids: number[]) => {
   const query = db.selectFrom("role").where("rolId", "in", ids);
 
-  const roles = await query.select(columnsToSelect).execute();
-  for (const role of roles) {
-    const { permissions } = role;
-    role.permissions = permissions.map((v) => convertPropForJs(v, "perSet")!);
-  }
-  return roles;
+  return query.selectAll().execute();
 };
 
 /**

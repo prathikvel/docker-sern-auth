@@ -1,35 +1,10 @@
-import { ExpressionBuilder } from "kysely";
-import { jsonArrayFrom } from "kysely/helpers/mysql";
-
 import { db } from "@/configs/database.config";
-import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
-import { Role } from "../role";
 import { User, NewUser, UserUpdate } from "./user.model";
 
-/** The user columns to select/filter, including all the user columns except
- * `usrPassword`. */
-const userColumns = ["usrId", "usrName", "usrEmail", "usrCreated"] as const;
-
-/** The role columns to select/filter, including the `rolId` and `rolName`
- * role columns. */
-const roleColumns = ["rolId", "rolName"] as const;
-
-/** The columns to select, including all user columns, except `usrPassword`,
- * and the `rolId` and `rolName` role columns. */
-const columnsToSelect = [
-  ...userColumns,
-  (eb: ExpressionBuilder<Database, "user">) => {
-    return jsonArrayFrom(
-      eb
-        .selectFrom("userRole")
-        .whereRef("urlUsrId", "=", "usrId")
-        .innerJoin("role", "rolId", "urlRolId")
-        .select(roleColumns)
-    ).as("roles");
-  },
-] as const;
+/** The columns to filter, including all user columns except `usrPassword`. */
+const columns = ["usrId", "usrName", "usrEmail", "usrCreated"] as const;
 
 /**
  * The generic function to find a user based on a criterion.
@@ -49,92 +24,74 @@ const findUser = <K extends keyof User>(
     .where(criterion, "=", criterionValue as any);
 
   return query
-    .select(columnsToSelect)
+    .selectAll()
     .$if(withPassword, (qb) => qb.select("usrPassword"))
     .executeTakeFirst();
 };
 
 /**
- * Returns the user and their roles or undefined if the given `id` is invalid.
- * The return object excludes `usrPassword` for security.
+ * Returns the user or undefined if the given `id` is invalid. The return
+ * object excludes `usrPassword` for security.
  *
  * @param id The user's `usrId`
- * @returns The user and their roles or undefined if the given `id` is invalid
+ * @returns The user or undefined if the given `id` is invalid
  */
 export const findUserById = (id: number) => findUser("usrId", id);
 
 /**
- * Returns the user and their roles or undefined if the given `id` is invalid.
- * The return object includes `usrPassword`.
+ * Returns the user or undefined if the given `id` is invalid. The return
+ * object includes `usrPassword`.
  *
  * @param id The user's `usrId`
- * @returns The user and their roles or undefined if the given `id` is invalid
+ * @returns The user or undefined if the given `id` is invalid
  */
 export const findUserByIdWithPassword = (id: number) =>
   findUser("usrId", id, true);
 
 /**
- * Returns the user and their roles or undefined if the given `email` is invalid.
- * The return object excludes `usrPassword` for security.
+ * Returns the user or undefined if the given `email` is invalid. The return
+ * object excludes `usrPassword` for security.
  *
  * @param email The user's `usrEmail`
- * @returns The user and their roles or undefined if the given `email` is invalid
+ * @returns The user or undefined if the given `email` is invalid
  */
 export const findUserByEmail = (email: string) => findUser("usrEmail", email);
 
 /**
- * Returns the user and their roles or undefined if the given `email` is invalid.
- * The return object includes `usrPassword`.
+ * Returns the user or undefined if the given `email` is invalid. The return
+ * object includes `usrPassword`.
  *
  * @param email The user's `usrEmail`
- * @returns The user and their roles or undefined if the given `email` is invalid
+ * @returns The user or undefined if the given `email` is invalid
  */
 export const findUserByEmailWithPassword = (email: string) =>
   findUser("usrEmail", email, true);
 
 /**
- * Returns an array of users, and their roles, that match the given criteria.
- * Returns all users if no criteria are provided. All criteria will be compared
- * via equality.
+ * Returns an array of users that match the given criteria. Returns all users
+ * if no criteria are provided. All the criteria will be compared via equality.
  *
- * @param criteria An object of user or role fields to match with
- * @returns An array of users, and their roles, that match the given criteria
+ * @param criteria An object of user fields to match with
+ * @returns An array of users that match the given criteria
  */
-export const findUsers = (criteria: Partial<User & Role> = {}) => {
-  let query = db
+export const findUsers = (criteria: Partial<User> = {}) => {
+  const query = db
     .selectFrom("user")
-    .where((eb) => eb.and(pick(criteria, userColumns)));
+    .where((eb) => eb.and(pick(criteria, columns)));
 
-  const withRoleCriteria = roleColumns.some((v) => Object.hasOwn(criteria, v));
-
-  if (withRoleCriteria) {
-    query = query.where((eb) =>
-      eb(
-        "usrId",
-        "in",
-        eb
-          .selectFrom("userRole")
-          .whereRef("urlUsrId", "=", "usrId")
-          .innerJoin("role", "rolId", "urlRolId")
-          .where((eb) => eb.and(pick(criteria, roleColumns)))
-          .select("urlUsrId")
-      )
-    );
-  }
-
-  return query.select(columnsToSelect).execute();
+  return query.selectAll().execute();
 };
 
 /**
- * Returns an array of users, and their roles, that have the given `id`s.
+ * Returns an array of users that have the given `id`s.
  *
  * @param ids An array of `usrId`s
- * @returns An array of users, and their roles, that have the given `id`s
+ * @returns An array of users that have the given `id`s
  */
 export const findUsersByIds = (ids: number[]) => {
   const query = db.selectFrom("user").where("usrId", "in", ids);
 
-  return query.select(columnsToSelect).execute();
+  return query.selectAll().execute();
 };
 
 /**
