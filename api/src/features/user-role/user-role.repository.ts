@@ -1,3 +1,5 @@
+import { jsonArrayFrom } from "kysely/helpers/mysql";
+
 import { db } from "@/configs/database.config";
 import { pick } from "@/utils/object.util";
 
@@ -20,6 +22,50 @@ export const findUserRoleById = (usrId: number, rolId: number) => {
     .where("urlRolId", "=", rolId);
 
   return query.selectAll().executeTakeFirst();
+};
+
+/**
+ * Returns the userRole and its roles or undefined if the `usrId` is invalid.
+ *
+ * @param usrId The userRole's `urlUsrId`
+ * @returns The userRole and its roles or undefined if the `usrId` is invalid
+ */
+export const findUserRoleByUsrId = (usrId: number) => {
+  const query = db.selectFrom("userRole").where("urlUsrId", "=", usrId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("role")
+          .whereRef("rolId", "=", "urlRolId")
+          .select(["rolId", "rolName", "rolCreated"])
+      ).as("roles");
+    })
+    .executeTakeFirst();
+};
+
+/**
+ * Returns the userRole and its users or undefined if the `rolId` is invalid.
+ *
+ * @param rolId The userRole's `urlRolId`
+ * @returns The userRole and its users or undefined if the `rolId` is invalid
+ */
+export const findUserRoleByRolId = (rolId: number) => {
+  const query = db.selectFrom("userRole").where("urlRolId", "=", rolId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("user")
+          .whereRef("usrId", "=", "urlUsrId")
+          .select(["usrId", "usrName", "usrEmail", "usrCreated"])
+      ).as("users");
+    })
+    .executeTakeFirst();
 };
 
 /**

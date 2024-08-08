@@ -6,6 +6,13 @@ export const ERRORS = {
   500: "Internal Server Error",
 };
 
+// ------------------------------ AUTH ------------------------------
+
+export const AUTH = {
+  PWD_MIN_LENGTH: 12,
+  PWD_SALT_ROUNDS: 10,
+};
+
 // --------------------------- ENTITY SETS --------------------------
 
 export const ENTITY_SET = {
@@ -23,13 +30,6 @@ export const ENTITY_SET = {
 };
 
 export type EntitySetName = (typeof ENTITY_SET.NAMES)[number];
-
-// ------------------------------ AUTH ------------------------------
-
-export const AUTH = {
-  PWD_MIN_LENGTH: 12,
-  PWD_SALT_ROUNDS: 10,
-};
 
 // --------------------------- PERMISSION ---------------------------
 
@@ -61,5 +61,14 @@ export const USER = {
     OLD_USR_PASSWORD: "Please enter a non-empty string",
     NEW_USR_PASSWORD: "Please enter a string of at least 12 characters",
     INVALID_CREDENTIALS: "Invalid user ID and/or password",
+  },
+};
+
+// ---------------------------- USER-ROLE ---------------------------
+
+export const USER_ROLE = {
+  ERRORS: {
+    URL_USR_ID: "Please enter an integer",
+    URL_ROL_ID: "Please enter an integer",
   },
 };
