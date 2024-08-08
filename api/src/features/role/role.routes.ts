@@ -1,9 +1,6 @@
 import express from "express";
 
-import {
-  handleEntityAuthorization as handleEntityAuth,
-  handleEntitiesAuthorization as handleEntitiesAuth,
-} from "../auth";
+import { handleEntitiesAuthorization as handleEntitiesAuth } from "../auth";
 import {
   getRoleById,
   getRoles,
@@ -15,14 +12,18 @@ import {
 export const roleRouter = express.Router();
 
 // get role
-roleRouter.get("/:id", handleEntityAuth("role", "read"), getRoleById);
-roleRouter.get("/", handleEntitiesAuth("role", "read"), getRoles);
+roleRouter.get("/:id", handleEntitiesAuth("role", "read", true), getRoleById);
+roleRouter.get("/", handleEntitiesAuth("role", "read", true), getRoles);
 
 // add role
 roleRouter.post("/", handleEntitiesAuth("role", "create", true), addRole);
 
 // edit role
-roleRouter.put("/:id", handleEntityAuth("role", "update"), editRole);
+roleRouter.put("/:id", handleEntitiesAuth("role", "update", true), editRole);
 
 // remove role
-roleRouter.delete("/:id", handleEntityAuth("role", "delete"), removeRole);
+roleRouter.delete(
+  "/:id",
+  handleEntitiesAuth("role", "delete", true),
+  removeRole
+);

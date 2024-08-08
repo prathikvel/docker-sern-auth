@@ -44,13 +44,11 @@ ENGINE = InnoDB;
 -- Table `role`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `role` (
-  `rol_id` INT UNSIGNED NOT NULL,
+  `rol_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `rol_name` VARCHAR(45) NOT NULL,
   `rol_created` DATETIME(3) NOT NULL DEFAULT NOW(3),
   PRIMARY KEY (`rol_id`),
-  INDEX `fk_rol_pbl_idx` (`rol_id` ASC) VISIBLE,
-  UNIQUE INDEX `rol_name_UNIQUE` (`rol_name` ASC) VISIBLE,
-  CONSTRAINT `fk_rol_pbl` FOREIGN KEY (`rol_id`) REFERENCES `permissible` (`pbl_id`))
+  UNIQUE INDEX `rol_name_UNIQUE` (`rol_name` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 

@@ -1,20 +1,17 @@
 import { RequestHandler } from "express";
 import { checkExact, param, body } from "express-validator";
 
-import { ROLE, ERRORS } from "@/configs/global.config";
+import { ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
 } from "@/utils/controller.util";
-import { ServerError } from "@/utils/error.util";
 
-import { createPermissible, deletePermissible } from "../permissible";
 import {
   findRoleById,
   findRoles,
-  findRolesByIds,
   createRole,
   updateRole,
   deleteRole,
@@ -24,20 +21,7 @@ import {
  * Responds with all system roles.
  */
 export const getRoles: RequestHandler = (req, res, next) => {
-  const { authInfo } = res.locals;
-  if (authInfo) {
-    if (authInfo.allEntities) {
-      findRoles()
-        .then(respondRepository(res))
-        .catch(handleRepositoryError(next));
-    } else {
-      findRolesByIds(authInfo.entities)
-        .then(respondRepository(res))
-        .catch(handleRepositoryError(next));
-    }
-  } else {
-    next(new ServerError(500, ERRORS[500]));
-  }
+  findRoles().then(respondRepository(res)).catch(handleRepositoryError(next));
 };
 
 /**
@@ -68,8 +52,7 @@ export const addRole: RequestHandler[] = [
 
   // controller
   async (req, res, next) => {
-    const { pblId: rolId } = await createPermissible();
-    createRole({ rolId, ...req.body })
+    createRole(req.body)
       .then(respondRepository(res, { status: 201 }))
       .catch(handleRepositoryError(next));
   },
@@ -110,7 +93,6 @@ export const removeRole: RequestHandler[] = [
     const id = Number(req.params.id);
     deleteRole(id)
       .then(respondRepositoryOrThrow(res))
-      .then(() => deletePermissible(id))
       .catch(handleRepositoryError(next));
   },
 ];

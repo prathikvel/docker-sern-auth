@@ -56,18 +56,6 @@ export const findRoles = (criteria: Partial<Role> = {}) => {
 };
 
 /**
- * Returns an array of roles that have the given `id`s.
- *
- * @param ids An array of `rolId`s
- * @returns An array of roles that have the given `id`s
- */
-export const findRolesByIds = (ids: number[]) => {
-  const query = db.selectFrom("role").where("rolId", "in", ids);
-
-  return query.selectAll().execute();
-};
-
-/**
  * Inserts a new role in the database and returns the newly created role with
  * {@link findRoleById}. Throws a NoResultError if the role couldn't be created.
  *
@@ -76,9 +64,12 @@ export const findRolesByIds = (ids: number[]) => {
  * @throws NoResultError if the role was unable to be created
  */
 export const createRole = async (role: NewRole) => {
-  await db.insertInto("role").values(role).executeTakeFirstOrThrow();
+  const { insertId } = await db
+    .insertInto("role")
+    .values(role)
+    .executeTakeFirstOrThrow();
 
-  return findRoleById(role.rolId);
+  return findRoleById(Number(insertId!));
 };
 
 /**
