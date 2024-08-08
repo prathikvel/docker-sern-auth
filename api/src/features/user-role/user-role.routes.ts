@@ -2,35 +2,35 @@ import express from "express";
 
 import { handleEntitiesAuthorization as handleEntitiesAuth } from "../auth";
 import {
-  getUserRolesByUsrId,
-  getUserRolesByRolId,
+  getUserRoleByUsrId,
+  getUserRoleByRolId,
   addUserRole,
   removeUserRole,
 } from "./user-role.controller";
 
-export const userRouter = express.Router();
+export const userRoleRouter = express.Router();
 
-// get user
-userRouter.get(
+// get userRole
+userRoleRouter.get(
   "/users/:urlUsrId",
   handleEntitiesAuth("userRole", "read", true),
-  getUserRolesByUsrId
+  getUserRoleByUsrId
 );
-userRouter.get(
+userRoleRouter.get(
   "/roles/:urlRolId",
   handleEntitiesAuth("userRole", "read", true),
-  getUserRolesByRolId
+  getUserRoleByRolId
 );
 
-// add user
-userRouter.post(
+// add userRole
+userRoleRouter.post(
   "/",
   handleEntitiesAuth("userRole", "create", true),
   addUserRole
 );
 
-// remove user
-userRouter.delete(
+// remove userRole
+userRoleRouter.delete(
   "/users/:urlUsrId/roles/:urlRolId",
   handleEntitiesAuth("userRole", "delete", true),
   removeUserRole

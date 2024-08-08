@@ -17,9 +17,9 @@ import {
 } from "./user-role.repository";
 
 /**
- * Responds with a userRoles with the given `urlUsrId` parameter.
+ * Responds with a userRole with the given `urlUsrId` parameter.
  */
-export const getUserRolesByUsrId: RequestHandler[] = [
+export const getUserRoleByUsrId: RequestHandler[] = [
   // validation
   checkExact(param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt()),
   handleValidation,
@@ -34,9 +34,9 @@ export const getUserRolesByUsrId: RequestHandler[] = [
 ];
 
 /**
- * Responds with a userRoles with the given `urlRolId` parameter.
+ * Responds with a userRole with the given `urlRolId` parameter.
  */
-export const getUserRolesByRolId: RequestHandler[] = [
+export const getUserRoleByRolId: RequestHandler[] = [
   // validation
   checkExact(param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt()),
   handleValidation,
