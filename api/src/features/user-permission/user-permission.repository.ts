@@ -1,3 +1,5 @@
+import { jsonArrayFrom } from "kysely/helpers/mysql";
+
 import { db } from "@/configs/database.config";
 import { pick } from "@/utils/object.util";
 
@@ -24,6 +26,52 @@ export const findUserPermissionById = (usrId: number, perId: number) => {
     .where("urpPerId", "=", perId);
 
   return query.selectAll().executeTakeFirst();
+};
+
+/**
+ * Returns the userPermission and its permissions or undefined if the `usrId`
+ * is invalid.
+ *
+ * @param usrId The userPermission's `urpUsrId`
+ * @returns The userPermission or undefined if the `usrId` is invalid
+ */
+export const findUserPermissionByUsrId = (usrId: number) => {
+  const query = db.selectFrom("userPermission").where("urpUsrId", "=", usrId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("permission")
+          .whereRef("perId", "=", "urpPerId")
+          .select(["perId", "perSet", "perType", "perEntity", "perCreated"])
+      ).as("permissions");
+    })
+    .executeTakeFirst();
+};
+
+/**
+ * Returns the userPermission and its users or undefined if the `perId` is
+ * invalid.
+ *
+ * @param perId The userPermission's `urpPerId`
+ * @returns The userPermission or undefined if the `perId` is invalid
+ */
+export const findUserPermissionByPerId = (perId: number) => {
+  const query = db.selectFrom("userPermission").where("urpPerId", "=", perId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("user")
+          .whereRef("usrId", "=", "urpUsrId")
+          .select(["usrId", "usrName", "usrEmail", "usrCreated"])
+      ).as("users");
+    })
+    .executeTakeFirst();
 };
 
 /**

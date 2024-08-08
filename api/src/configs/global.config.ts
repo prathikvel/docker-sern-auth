@@ -73,6 +73,15 @@ export const USER = {
   },
 };
 
+// ------------------------- USER-PERMISSION ------------------------
+
+export const USER_PERMISSION = {
+  ERRORS: {
+    URP_USR_ID: "Please enter an integer",
+    URP_PER_ID: "Please enter an integer",
+  },
+};
+
 // ---------------------------- USER-ROLE ---------------------------
 
 export const USER_ROLE = {
