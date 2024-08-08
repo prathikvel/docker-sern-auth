@@ -72,7 +72,7 @@ export const addUserRole: RequestHandler[] = [
 
 /**
  * Deletes a userRole with the given `id` parameters and responds with the
- * deleted role.
+ * deleted userRole.
  */
 export const removeUserRole: RequestHandler[] = [
   // validation

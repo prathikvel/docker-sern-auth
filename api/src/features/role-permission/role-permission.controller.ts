@@ -72,7 +72,7 @@ export const addRolePermission: RequestHandler[] = [
 
 /**
  * Deletes a rolePermission with the given `id` parameters and responds with
- * the deleted role.
+ * the deleted rolePermission.
  */
 export const removeRolePermission: RequestHandler[] = [
   // validation
