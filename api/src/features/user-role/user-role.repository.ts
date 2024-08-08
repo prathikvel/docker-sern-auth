@@ -1,12 +1,35 @@
+import { ExpressionBuilder } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
 import { UserRole, NewUserRole, UserRoleUpdate } from "./user-role.model";
 
 /** The columns to filter, including all userRole columns. */
 const columns = ["urlUsrId", "urlRolId", "urlCreated"] as const;
+
+/** The user columns to select, including all user columns except
+ * `usrPassword`. */
+const userColumns = (eb: ExpressionBuilder<Database, "userRole">) => {
+  return jsonArrayFrom(
+    eb
+      .selectFrom("user")
+      .whereRef("usrId", "=", "urlUsrId")
+      .select(["usrId", "usrName", "usrEmail", "usrCreated"])
+  ).as("users");
+};
+
+/** The role columns to select, including all role columns. */
+const roleColumns = (eb: ExpressionBuilder<Database, "userRole">) => {
+  return jsonArrayFrom(
+    eb
+      .selectFrom("role")
+      .whereRef("rolId", "=", "urlRolId")
+      .select(["rolId", "rolName", "rolCreated"])
+  ).as("roles");
+};
 
 /**
  * Returns the userRole or undefined if the given `id`s are invalid.
@@ -33,17 +56,7 @@ export const findUserRoleById = (usrId: number, rolId: number) => {
 export const findUserRoleByUsrId = (usrId: number) => {
   const query = db.selectFrom("userRole").where("urlUsrId", "=", usrId);
 
-  return query
-    .selectAll()
-    .select((eb) => {
-      return jsonArrayFrom(
-        eb
-          .selectFrom("role")
-          .whereRef("rolId", "=", "urlRolId")
-          .select(["rolId", "rolName", "rolCreated"])
-      ).as("roles");
-    })
-    .executeTakeFirst();
+  return query.selectAll().select(roleColumns).executeTakeFirst();
 };
 
 /**
@@ -55,17 +68,7 @@ export const findUserRoleByUsrId = (usrId: number) => {
 export const findUserRoleByRolId = (rolId: number) => {
   const query = db.selectFrom("userRole").where("urlRolId", "=", rolId);
 
-  return query
-    .selectAll()
-    .select((eb) => {
-      return jsonArrayFrom(
-        eb
-          .selectFrom("user")
-          .whereRef("usrId", "=", "urlUsrId")
-          .select(["usrId", "usrName", "usrEmail", "usrCreated"])
-      ).as("users");
-    })
-    .executeTakeFirst();
+  return query.selectAll().select(userColumns).executeTakeFirst();
 };
 
 /**
@@ -82,6 +85,30 @@ export const findUserRoles = (criteria: Partial<UserRole> = {}) => {
     .where((eb) => eb.and(pick(criteria, columns)));
 
   return query.selectAll().execute();
+};
+
+/**
+ * Returns an array of userRoles and their roles that have the given `usrId`s.
+ *
+ * @param usrIds An array of `urlUsrId`s
+ * @returns An array of userRoles and their roles that have the given `usrId`s
+ */
+export const findUserRolesByUsrIds = (usrIds: number[]) => {
+  const query = db.selectFrom("userRole").where("urlUsrId", "in", usrIds);
+
+  return query.selectAll().select(roleColumns).execute();
+};
+
+/**
+ * Returns an array of userRoles and their users that have the given `rolId`s.
+ *
+ * @param rolIds An array of `urlRolId`s
+ * @returns An array of userRoles and their users that have the given `rolId`s
+ */
+export const findUserRolesByRolIds = (rolIds: number[]) => {
+  const query = db.selectFrom("userRole").where("urlRolId", "in", rolIds);
+
+  return query.selectAll().select(userColumns).execute();
 };
 
 /**
