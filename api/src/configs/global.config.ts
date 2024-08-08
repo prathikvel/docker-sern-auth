@@ -13,7 +13,7 @@ export const AUTH = {
   PWD_SALT_ROUNDS: 10,
 };
 
-// --------------------------- ENTITY SETS --------------------------
+// --------------------------- ENTITY SET ---------------------------
 
 export const ENTITY_SET = {
   NAMES: [
@@ -47,6 +47,15 @@ export const ROLE = {
   ERRORS: {
     ROL_ID: "Please enter an integer",
     ROL_NAME: "Please enter a string that only contains letters",
+  },
+};
+
+// ------------------------- ROLE-PERMISSION ------------------------
+
+export const ROLE_PERMISSION = {
+  ERRORS: {
+    RLP_ROL_ID: "Please enter an integer",
+    RLP_PER_ID: "Please enter an integer",
   },
 };
 

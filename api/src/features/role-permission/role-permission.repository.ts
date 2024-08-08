@@ -1,3 +1,5 @@
+import { jsonArrayFrom } from "kysely/helpers/mysql";
+
 import { db } from "@/configs/database.config";
 import { pick } from "@/utils/object.util";
 
@@ -24,6 +26,52 @@ export const findRolePermissionById = (rolId: number, perId: number) => {
     .where("rlpPerId", "=", perId);
 
   return query.selectAll().executeTakeFirst();
+};
+
+/**
+ * Returns the rolePermission and its permissions or undefined if the `rolId`
+ * is invalid.
+ *
+ * @param rolId The rolePermission's `rlpRolId`
+ * @returns The rolePermission or undefined if the `rolId` is invalid
+ */
+export const findRolePermissionByRolId = (rolId: number) => {
+  const query = db.selectFrom("rolePermission").where("rlpRolId", "=", rolId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("permission")
+          .whereRef("perId", "=", "rlpPerId")
+          .select(["perId", "perSet", "perType", "perEntity", "perCreated"])
+      ).as("permissions");
+    })
+    .executeTakeFirst();
+};
+
+/**
+ * Returns the rolePermission and its roles or undefined if the `perId` is
+ * invalid.
+ *
+ * @param perId The rolePermission's `rlpPerId`
+ * @returns The rolePermission or undefined if the `perId` is invalid
+ */
+export const findRolePermissionByPerId = (perId: number) => {
+  const query = db.selectFrom("rolePermission").where("rlpPerId", "=", perId);
+
+  return query
+    .selectAll()
+    .select((eb) => {
+      return jsonArrayFrom(
+        eb
+          .selectFrom("role")
+          .whereRef("rolId", "=", "rlpRolId")
+          .select(["rolId", "rolName", "rolCreated"])
+      ).as("roles");
+    })
+    .executeTakeFirst();
 };
 
 /**
