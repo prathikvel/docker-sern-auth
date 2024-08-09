@@ -1,6 +1,11 @@
 import express from "express";
+import { checkExact, param, body } from "express-validator";
 
-import { handleEntitiesAuthorization as handleEntitiesAuth } from "../auth";
+import { ROLE_PERMISSION } from "@/configs/global.config";
+import { handleValidation } from "@/middlewares/validation.middleware";
+import { handlers } from "@/utils/routes.util";
+
+import { handleEntitiesAuthorization } from "../auth";
 import {
   getRolePermissionByRolId,
   getRolePermissionByPerId,
@@ -10,28 +15,62 @@ import {
 
 export const rolePermissionRouter = express.Router();
 
-// get rolePermission
+// ------------------------------- GET ------------------------------
+
 rolePermissionRouter.get(
   "/roles/:rlpRolId",
-  handleEntitiesAuth("rolePermission", "read", true),
-  getRolePermissionByRolId
+  handlers({
+    validation: [
+      checkExact(param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("rolePermission", "read", true),
+    controller: getRolePermissionByRolId,
+  })
 );
+
 rolePermissionRouter.get(
   "/permissions/:rlpPerId",
-  handleEntitiesAuth("rolePermission", "read", true),
-  getRolePermissionByPerId
+  handlers({
+    validation: [
+      checkExact(param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("rolePermission", "read", true),
+    controller: getRolePermissionByPerId,
+  })
 );
 
-// add rolePermission
+// ------------------------------ POST ------------------------------
+
 rolePermissionRouter.post(
   "/",
-  handleEntitiesAuth("rolePermission", "create", true),
-  addRolePermission
+  handlers({
+    validation: [
+      checkExact([
+        body("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt(),
+        body("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("rolePermission", "create", true),
+    controller: addRolePermission,
+  })
 );
 
-// remove rolePermission
+// ----------------------------- DELETE -----------------------------
+
 rolePermissionRouter.delete(
   "/roles/:rlpRolId/permissions/:rlpPerId",
-  handleEntitiesAuth("rolePermission", "delete", true),
-  removeRolePermission
+  handlers({
+    validation: [
+      checkExact([
+        param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt(),
+        param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("rolePermission", "delete", true),
+    controller: removeRolePermission,
+  })
 );
