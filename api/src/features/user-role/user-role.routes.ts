@@ -1,6 +1,11 @@
 import express from "express";
+import { checkExact, param, body } from "express-validator";
 
-import { handleEntitiesAuthorization as handleEntitiesAuth } from "../auth";
+import { USER_ROLE } from "@/configs/global.config";
+import { handleValidation } from "@/middlewares/validation.middleware";
+import { handlers } from "@/utils/routes.util";
+
+import { handleEntitiesAuthorization } from "../auth";
 import {
   getUserRoleByUsrId,
   getUserRoleByRolId,
@@ -10,28 +15,62 @@ import {
 
 export const userRoleRouter = express.Router();
 
-// get userRole
+// ------------------------------- GET ------------------------------
+
 userRoleRouter.get(
   "/users/:urlUsrId",
-  handleEntitiesAuth("userRole", "read", true),
-  getUserRoleByUsrId
+  handlers({
+    validation: [
+      checkExact(param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("userRole", "read", true),
+    controller: getUserRoleByUsrId,
+  })
 );
+
 userRoleRouter.get(
   "/roles/:urlRolId",
-  handleEntitiesAuth("userRole", "read", true),
-  getUserRoleByRolId
+  handlers({
+    validation: [
+      checkExact(param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("userRole", "read", true),
+    controller: getUserRoleByRolId,
+  })
 );
 
-// add userRole
+// ------------------------------ POST ------------------------------
+
 userRoleRouter.post(
   "/",
-  handleEntitiesAuth("userRole", "create", true),
-  addUserRole
+  handlers({
+    validation: [
+      checkExact([
+        body("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
+        body("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("userRole", "create", true),
+    controller: addUserRole,
+  })
 );
 
-// remove userRole
+// ----------------------------- DELETE -----------------------------
+
 userRoleRouter.delete(
   "/users/:urlUsrId/roles/:urlRolId",
-  handleEntitiesAuth("userRole", "delete", true),
-  removeUserRole
+  handlers({
+    validation: [
+      checkExact([
+        param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
+        param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("userRole", "delete", true),
+    controller: removeUserRole,
+  })
 );
