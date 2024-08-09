@@ -1,8 +1,13 @@
 import express, { RequestHandler } from "express";
+import { checkExact, param, body } from "express-validator";
+
+import { AUTH, USER } from "@/configs/global.config";
+import { handleValidation } from "@/middlewares/validation.middleware";
+import { handlers } from "@/utils/routes.util";
 
 import {
-  handleEntityAuthorization as handleEntityAuth,
-  handleEntitiesAuthorization as handleEntitiesAuth,
+  handleEntityAuthorization,
+  handleEntitiesAuthorization,
 } from "../auth";
 import {
   getCurrentUser,
@@ -16,27 +21,108 @@ import {
 
 export const userRouter = express.Router();
 
-// get user
-userRouter.get("/current", getCurrentUser);
-userRouter.get("/:id", handleEntityAuth("user", "read"), getUserById);
-userRouter.get("/", handleEntitiesAuth("user", "read"), getUsers);
+// ------------------------------- GET ------------------------------
 
-// add user
-userRouter.post("/", handleEntitiesAuth("user", "create", true), addUser);
+userRouter.get(
+  "/current",
+  handlers({
+    controller: getCurrentUser,
+  })
+);
 
-// edit user
+userRouter.get(
+  "/",
+  handlers({
+    middleware: handleEntitiesAuthorization("user", "read"),
+    controller: getUsers,
+  })
+);
+
+userRouter.get(
+  "/:id",
+  handlers({
+    validation: [
+      checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntityAuthorization("user", "read"),
+    controller: getUserById,
+  })
+);
+
+// ------------------------------ POST ------------------------------
+
+userRouter.post(
+  "/",
+  handlers({
+    validation: [
+      checkExact([
+        body("usrName", USER.ERRORS.USR_NAME).isAlpha(),
+        body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail(),
+        body("usrPassword", USER.ERRORS.USR_PASSWORD).isLength({
+          min: AUTH.PWD_MIN_LENGTH,
+        }),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("user", "create", true),
+    controller: addUser,
+  })
+);
+
+// ------------------------------- PUT ------------------------------
+
 userRouter.put(
   "/:id",
-  handleEntityAuth("user", "update"),
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
     };
     return hasOwn("oldUsrPassword", "newUsrPassword") ? next("route") : next();
   }),
-  editUser
-);
-userRouter.put("/:id", editUserPassword);
 
-// remove user
-userRouter.delete("/:id", handleEntityAuth("user", "delete"), removeUser);
+  handlers({
+    validation: [
+      checkExact([
+        param("id", USER.ERRORS.USR_ID).isInt(),
+        body("usrName", USER.ERRORS.USR_NAME).isAlpha().optional(),
+        body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail().optional(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntityAuthorization("user", "update"),
+    controller: editUser,
+  })
+);
+
+userRouter.put(
+  "/:id",
+  handlers({
+    validation: [
+      checkExact([
+        param("id", USER.ERRORS.USR_ID).isInt(),
+        body("oldUsrPassword", USER.ERRORS.OLD_USR_PASSWORD).notEmpty(),
+        body("newUsrPassword", USER.ERRORS.NEW_USR_PASSWORD).isLength({
+          min: AUTH.PWD_MIN_LENGTH,
+        }),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntityAuthorization("user", "update"),
+    controller: editUserPassword,
+  })
+);
+
+// ----------------------------- DELETE -----------------------------
+
+userRouter.delete(
+  "/:id",
+  handlers({
+    validation: [
+      checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntityAuthorization("user", "delete"),
+    controller: removeUser,
+  })
+);
