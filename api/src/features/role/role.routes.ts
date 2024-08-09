@@ -1,6 +1,11 @@
 import express from "express";
+import { checkExact, param, body } from "express-validator";
 
-import { handleEntitiesAuthorization as handleEntitiesAuth } from "../auth";
+import { ROLE } from "@/configs/global.config";
+import { handleValidation } from "@/middlewares/validation.middleware";
+import { handlers } from "@/utils/routes.util";
+
+import { handleEntitiesAuthorization } from "../auth";
 import {
   getRoleById,
   getRoles,
@@ -11,19 +16,69 @@ import {
 
 export const roleRouter = express.Router();
 
-// get role
-roleRouter.get("/:id", handleEntitiesAuth("role", "read", true), getRoleById);
-roleRouter.get("/", handleEntitiesAuth("role", "read", true), getRoles);
+// ------------------------------- GET ------------------------------
 
-// add role
-roleRouter.post("/", handleEntitiesAuth("role", "create", true), addRole);
+roleRouter.get(
+  "/",
+  handlers({
+    middleware: handleEntitiesAuthorization("role", "read", true),
+    controller: getRoles,
+  })
+);
 
-// edit role
-roleRouter.put("/:id", handleEntitiesAuth("role", "update", true), editRole);
+roleRouter.get(
+  "/:id",
+  handlers({
+    validation: [
+      checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("role", "read", true),
+    controller: getRoleById,
+  })
+);
 
-// remove role
+// ------------------------------ POST ------------------------------
+
+roleRouter.post(
+  "/",
+  handlers({
+    validation: [
+      checkExact(body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("role", "create", true),
+    controller: addRole,
+  })
+);
+
+// ------------------------------- PUT ------------------------------
+
+roleRouter.put(
+  "/:id",
+  handlers({
+    validation: [
+      checkExact([
+        param("id", ROLE.ERRORS.ROL_ID).isInt(),
+        body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha().optional(),
+      ]),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("role", "update", true),
+    controller: editRole,
+  })
+);
+
+// ----------------------------- DELETE -----------------------------
+
 roleRouter.delete(
   "/:id",
-  handleEntitiesAuth("role", "delete", true),
-  removeRole
+  handlers({
+    validation: [
+      checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("role", "delete", true),
+    controller: removeRole,
+  })
 );

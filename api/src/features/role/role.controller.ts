@@ -1,8 +1,5 @@
 import { RequestHandler } from "express";
-import { checkExact, param, body } from "express-validator";
 
-import { ROLE } from "@/configs/global.config";
-import { handleValidation } from "@/middlewares/validation.middleware";
 import {
   respondRepository,
   respondRepositoryOrThrow,
@@ -27,72 +24,41 @@ export const getRoles: RequestHandler = (req, res, next) => {
 /**
  * Responds with a role with the given `id` parameter.
  */
-export const getRoleById: RequestHandler[] = [
-  // validation
-  checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
-  handleValidation,
-
-  // controller
-  (req, res, next) => {
-    const id = Number(req.params.id);
-    findRoleById(id)
-      .then(respondRepositoryOrThrow(res))
-      .catch(handleRepositoryError(next));
-  },
-];
+export const getRoleById: RequestHandler = (req, res, next) => {
+  const id = Number(req.params.id);
+  findRoleById(id)
+    .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
 
 /**
  * Creates a new role with properties from `req.body` and responds with the
  * newly created role.
  */
-export const addRole: RequestHandler[] = [
-  // validation
-  checkExact(body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha()),
-  handleValidation,
-
-  // controller
-  async (req, res, next) => {
-    createRole(req.body)
-      .then(respondRepository(res, { status: 201 }))
-      .catch(handleRepositoryError(next));
-  },
-];
+export const addRole: RequestHandler = (req, res, next) => {
+  createRole(req.body)
+    .then(respondRepository(res, { status: 201 }))
+    .catch(handleRepositoryError(next));
+};
 
 /**
  * Edits a role with the given `id` parameter and properties from `req.body`.
  * Responds with the edited role.
  */
-export const editRole: RequestHandler[] = [
-  // validation
-  checkExact([
-    param("id", ROLE.ERRORS.ROL_ID).isInt(),
-    body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha().optional(),
-  ]),
-  handleValidation,
-
-  // controller
-  (req, res, next) => {
-    const id = Number(req.params.id);
-    updateRole(id, req.body)
-      .then(respondRepositoryOrThrow(res))
-      .catch(handleRepositoryError(next));
-  },
-];
+export const editRole: RequestHandler = (req, res, next) => {
+  const id = Number(req.params.id);
+  updateRole(id, req.body)
+    .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
 
 /**
  * Deletes a role with the given `id` parameter and responds with the deleted
  * role.
  */
-export const removeRole: RequestHandler[] = [
-  // validation
-  checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
-  handleValidation,
-
-  // controller
-  (req, res, next) => {
-    const id = Number(req.params.id);
-    deleteRole(id)
-      .then(respondRepositoryOrThrow(res))
-      .catch(handleRepositoryError(next));
-  },
-];
+export const removeRole: RequestHandler = (req, res, next) => {
+  const id = Number(req.params.id);
+  deleteRole(id)
+    .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
