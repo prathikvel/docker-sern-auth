@@ -33,7 +33,7 @@ export const getCurrentUser: RequestHandler = (req, res) => {
 export const getUsers: RequestHandler = (req, res, next) => {
   const { authInfo } = res.locals;
   if (authInfo) {
-    if (authInfo.allEntities) {
+    if (authInfo.entitySet) {
       findUsers()
         .then(respondRepository(res))
         .catch(handleRepositoryError(next));

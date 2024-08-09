@@ -5,7 +5,7 @@ import { USER_ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import { handlers } from "@/utils/routes.util";
 
-import { handleEntitiesAuthorization } from "../auth";
+import { handleEntitySetAuthorization } from "../auth";
 import {
   getUserRoleByUsrId,
   getUserRoleByRolId,
@@ -24,7 +24,7 @@ userRoleRouter.get(
       checkExact(param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userRole", "read", true),
+    middleware: handleEntitySetAuthorization("userRole", "read"),
     controller: getUserRoleByUsrId,
   })
 );
@@ -36,7 +36,7 @@ userRoleRouter.get(
       checkExact(param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userRole", "read", true),
+    middleware: handleEntitySetAuthorization("userRole", "read"),
     controller: getUserRoleByRolId,
   })
 );
@@ -53,7 +53,7 @@ userRoleRouter.post(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userRole", "create", true),
+    middleware: handleEntitySetAuthorization("userRole", "create"),
     controller: addUserRole,
   })
 );
@@ -70,7 +70,7 @@ userRoleRouter.delete(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userRole", "delete", true),
+    middleware: handleEntitySetAuthorization("userRole", "delete"),
     controller: removeUserRole,
   })
 );

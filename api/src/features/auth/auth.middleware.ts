@@ -77,11 +77,10 @@ export const handleEntityAuthorization = (
 
 /**
  * A middleware that checks if the user is authorized with role or user-based
- * access to any of entities with the given entity set and permission type. If
- * authorized, the request proceeds. Otherwise, an AuthorizationError is passed
- * to the error handler.
+ * access to the given entity set and permission type. If authorized, the request
+ * proceeds. Otherwise, an AuthorizationError is passed to the error handler.
  *
- * How entities are resolved:
+ * How an entity set is resolved:
  *
  * 1. If entity set access is required via the corresponding argument, check if
  *    the user has access to the entity set. If so, the request proceeds.
@@ -91,13 +90,13 @@ export const handleEntityAuthorization = (
  *      * If the user has entity set access:
  *        ```
  *        res.locals.authInfo = {
- *          allEntities: true,
+ *          entitySet: true,
  *        }
  *        ```
  *      * If the user has access to some entities:
  *        ```
  *        res.locals.authInfo = {
- *          allEntities: false,
+ *          entitySet: false,
  *          entities: accessibleEntities,
  *        }
  *        ```
@@ -105,22 +104,22 @@ export const handleEntityAuthorization = (
  * Here is some example usage:
  *
  * ```
- * // With default entities
+ * // With default entity set
  * handleEntitiesAuthorization("item", "read"); // or
- * handleEntitiesAuthorization("item", "read", false);
- *
- * // With entity set access
  * handleEntitiesAuthorization("item", "read", true);
+ *
+ * // Without entity set access
+ * handleEntitiesAuthorization("item", "read", false);
  * ```
  *
  * @param set The entity set to check access
  * @param type The permission type to check access
  * @param entitySetAccess If entity set access is required
  */
-export const handleEntitiesAuthorization = (
+export const handleEntitySetAuthorization = (
   set: EntitySetName,
   type: PermissionTypeName,
-  entitySetAccess: boolean = false
+  entitySetAccess: boolean = true
 ): RequestHandler => {
   return async (req, res, next) => {
     const { usrId } = req.user!;
@@ -136,9 +135,9 @@ export const handleEntitiesAuthorization = (
       if (isAuthorized) {
         // pass entities information to controller
         if (entities.includes(null)) {
-          res.locals.authInfo.allEntities = true;
+          res.locals.authInfo.entitySet = true;
         } else {
-          res.locals.authInfo.allEntities = false;
+          res.locals.authInfo.entitySet = false;
           res.locals.authInfo.entities = entities;
         }
       }

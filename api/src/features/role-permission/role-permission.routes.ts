@@ -5,7 +5,7 @@ import { ROLE_PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import { handlers } from "@/utils/routes.util";
 
-import { handleEntitiesAuthorization } from "../auth";
+import { handleEntitySetAuthorization } from "../auth";
 import {
   getRolePermissionByRolId,
   getRolePermissionByPerId,
@@ -24,7 +24,7 @@ rolePermissionRouter.get(
       checkExact(param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("rolePermission", "read", true),
+    middleware: handleEntitySetAuthorization("rolePermission", "read"),
     controller: getRolePermissionByRolId,
   })
 );
@@ -36,7 +36,7 @@ rolePermissionRouter.get(
       checkExact(param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("rolePermission", "read", true),
+    middleware: handleEntitySetAuthorization("rolePermission", "read"),
     controller: getRolePermissionByPerId,
   })
 );
@@ -53,7 +53,7 @@ rolePermissionRouter.post(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("rolePermission", "create", true),
+    middleware: handleEntitySetAuthorization("rolePermission", "create"),
     controller: addRolePermission,
   })
 );
@@ -70,7 +70,7 @@ rolePermissionRouter.delete(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("rolePermission", "delete", true),
+    middleware: handleEntitySetAuthorization("rolePermission", "delete"),
     controller: removeRolePermission,
   })
 );

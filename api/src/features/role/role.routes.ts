@@ -5,7 +5,7 @@ import { ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import { handlers } from "@/utils/routes.util";
 
-import { handleEntitiesAuthorization } from "../auth";
+import { handleEntitySetAuthorization } from "../auth";
 import {
   getRoleById,
   getRoles,
@@ -21,7 +21,7 @@ export const roleRouter = express.Router();
 roleRouter.get(
   "/",
   handlers({
-    middleware: handleEntitiesAuthorization("role", "read", true),
+    middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoles,
   })
 );
@@ -33,7 +33,7 @@ roleRouter.get(
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("role", "read", true),
+    middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoleById,
   })
 );
@@ -47,7 +47,7 @@ roleRouter.post(
       checkExact(body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("role", "create", true),
+    middleware: handleEntitySetAuthorization("role", "create"),
     controller: addRole,
   })
 );
@@ -64,7 +64,7 @@ roleRouter.put(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("role", "update", true),
+    middleware: handleEntitySetAuthorization("role", "update"),
     controller: editRole,
   })
 );
@@ -78,7 +78,7 @@ roleRouter.delete(
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("role", "delete", true),
+    middleware: handleEntitySetAuthorization("role", "delete"),
     controller: removeRole,
   })
 );

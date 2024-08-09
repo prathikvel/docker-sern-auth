@@ -7,7 +7,7 @@ import { handlers } from "@/utils/routes.util";
 
 import {
   handleEntityAuthorization,
-  handleEntitiesAuthorization,
+  handleEntitySetAuthorization,
 } from "../auth";
 import {
   getCurrentUser,
@@ -33,7 +33,7 @@ userRouter.get(
 userRouter.get(
   "/",
   handlers({
-    middleware: handleEntitiesAuthorization("user", "read"),
+    middleware: handleEntitySetAuthorization("user", "read", false),
     controller: getUsers,
   })
 );
@@ -65,7 +65,7 @@ userRouter.post(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("user", "create", true),
+    middleware: handleEntitySetAuthorization("user", "create"),
     controller: addUser,
   })
 );

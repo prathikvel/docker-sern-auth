@@ -5,7 +5,7 @@ import { USER_PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
 import { handlers } from "@/utils/routes.util";
 
-import { handleEntitiesAuthorization } from "../auth";
+import { handleEntitySetAuthorization } from "../auth";
 import {
   getUserPermissionByUsrId,
   getUserPermissionByPerId,
@@ -24,7 +24,7 @@ userPermissionRouter.get(
       checkExact(param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userPermission", "read", true),
+    middleware: handleEntitySetAuthorization("userPermission", "read"),
     controller: getUserPermissionByUsrId,
   })
 );
@@ -36,7 +36,7 @@ userPermissionRouter.get(
       checkExact(param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt()),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userPermission", "read", true),
+    middleware: handleEntitySetAuthorization("userPermission", "read"),
     controller: getUserPermissionByPerId,
   })
 );
@@ -53,7 +53,7 @@ userPermissionRouter.post(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userPermission", "create", true),
+    middleware: handleEntitySetAuthorization("userPermission", "create"),
     controller: addUserPermission,
   })
 );
@@ -70,7 +70,7 @@ userPermissionRouter.delete(
       ]),
       handleValidation,
     ],
-    middleware: handleEntitiesAuthorization("userPermission", "delete", true),
+    middleware: handleEntitySetAuthorization("userPermission", "delete"),
     controller: removeUserPermission,
   })
 );
