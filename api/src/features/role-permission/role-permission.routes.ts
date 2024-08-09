@@ -18,7 +18,7 @@ export const rolePermissionRouter = express.Router();
 // ------------------------------- GET ------------------------------
 
 rolePermissionRouter.get(
-  "/roles/:rlpRolId",
+  "/roles/:rlpRolId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt()),
@@ -30,7 +30,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/permissions/:rlpPerId",
+  "/permissions/:rlpPerId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt()),
@@ -61,7 +61,7 @@ rolePermissionRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 rolePermissionRouter.delete(
-  "/roles/:rlpRolId/permissions/:rlpPerId",
+  "/roles/:rlpRolId(\d+)/permissions/:rlpPerId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact([

@@ -39,7 +39,7 @@ userRouter.get(
 );
 
 userRouter.get(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
@@ -73,7 +73,7 @@ userRouter.post(
 // ------------------------------- PUT ------------------------------
 
 userRouter.put(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
@@ -96,7 +96,7 @@ userRouter.put(
 );
 
 userRouter.put(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact([
@@ -116,7 +116,7 @@ userRouter.put(
 // ----------------------------- DELETE -----------------------------
 
 userRouter.delete(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("id", USER.ERRORS.USR_ID).isInt()),

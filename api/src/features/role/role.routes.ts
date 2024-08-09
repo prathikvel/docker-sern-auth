@@ -27,7 +27,7 @@ roleRouter.get(
 );
 
 roleRouter.get(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
@@ -55,7 +55,7 @@ roleRouter.post(
 // ------------------------------- PUT ------------------------------
 
 roleRouter.put(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact([
@@ -72,7 +72,7 @@ roleRouter.put(
 // ----------------------------- DELETE -----------------------------
 
 roleRouter.delete(
-  "/:id",
+  "/:id(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),

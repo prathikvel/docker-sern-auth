@@ -18,7 +18,7 @@ export const userRoleRouter = express.Router();
 // ------------------------------- GET ------------------------------
 
 userRoleRouter.get(
-  "/users/:urlUsrId",
+  "/users/:urlUsrId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt()),
@@ -30,7 +30,7 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/roles/:urlRolId",
+  "/roles/:urlRolId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact(param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt()),
@@ -61,7 +61,7 @@ userRoleRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 userRoleRouter.delete(
-  "/users/:urlUsrId/roles/:urlRolId",
+  "/users/:urlUsrId(\d+)/roles/:urlRolId(\d+)", // prettier-ignore
   handlers({
     validation: [
       checkExact([
