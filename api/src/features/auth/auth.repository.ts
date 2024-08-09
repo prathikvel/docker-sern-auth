@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 
 import { db } from "@/configs/database.config";
+import { jsonArrayFromExpr } from "@/utils/database.util";
 
 /**
  * Checks if the given user has the given permission based on user's role and
@@ -68,7 +69,8 @@ export const findAccessibleEntities = async (
     .innerJoin("permission", "perId", "urpPerId")
     .where("usrId", "=", usrId)
     .where("perSet", "=", perSet)
-    .where("perType", "=", perType);
+    .where("perType", "=", perType)
+    .select((eb) => jsonArrayFromExpr(eb.ref("perEntity")).as("perEntities"));
 
-  return (await query.select("perEntity").execute()).map((v) => v.perEntity);
+  return (await query.executeTakeFirstOrThrow()).perEntities;
 };
