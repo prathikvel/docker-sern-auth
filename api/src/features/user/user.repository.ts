@@ -24,7 +24,7 @@ const findUser = <K extends keyof User>(
     .where(criterion, "=", criterionValue as any);
 
   return query
-    .selectAll()
+    .select(columns)
     .$if(withPassword, (qb) => qb.select("usrPassword"))
     .executeTakeFirst();
 };
@@ -79,7 +79,7 @@ export const findUsers = (criteria: Partial<User> = {}) => {
     .selectFrom("user")
     .where((eb) => eb.and(pick(criteria, columns)));
 
-  return query.selectAll().execute();
+  return query.select(columns).execute();
 };
 
 /**
@@ -91,7 +91,7 @@ export const findUsers = (criteria: Partial<User> = {}) => {
 export const findUsersByIds = (ids: number[]) => {
   const query = db.selectFrom("user").where("usrId", "in", ids);
 
-  return query.selectAll().execute();
+  return query.select(columns).execute();
 };
 
 /**
