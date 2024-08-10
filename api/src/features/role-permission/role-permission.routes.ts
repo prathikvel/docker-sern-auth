@@ -32,7 +32,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/:rlpRolIds([\\d,]+)",
+  "/roles/:rlpRolIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -62,7 +62,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/:rlpPerIds([\\d,]+)",
+  "/permissions/:rlpPerIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(

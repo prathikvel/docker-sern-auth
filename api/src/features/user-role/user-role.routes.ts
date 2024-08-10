@@ -32,7 +32,7 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/:urlUsrIds([\\d,]+)",
+  "/users/:urlUsrIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -62,7 +62,7 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/:urlRolIds([\\d,]+)",
+  "/roles/:urlRolIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(

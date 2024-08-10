@@ -32,7 +32,7 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/:urpUsrIds([\\d,]+)",
+  "/users/:urpUsrIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -62,7 +62,7 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/:urpPerIds([\\d,]+)",
+  "/permissions/:urpPerIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
