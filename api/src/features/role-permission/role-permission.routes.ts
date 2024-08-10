@@ -8,7 +8,9 @@ import { handlers } from "@/utils/routes.util";
 import { handleEntitySetAuthorization } from "../auth";
 import {
   getRolePermissionByRolId,
+  getRolePermissionsByRolIds,
   getRolePermissionByPerId,
+  getRolePermissionsByPerIds,
   addRolePermission,
   removeRolePermission,
 } from "./role-permission.controller";
@@ -30,6 +32,24 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
+  "/:rlpRolIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("rlpRolIds", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("rolePermission", "read"),
+    controller: getRolePermissionsByRolIds,
+  })
+);
+
+rolePermissionRouter.get(
   "/permissions/:rlpPerId(\d+)", // prettier-ignore
   handlers({
     validation: [
@@ -38,6 +58,24 @@ rolePermissionRouter.get(
     ],
     middleware: handleEntitySetAuthorization("rolePermission", "read"),
     controller: getRolePermissionByPerId,
+  })
+);
+
+rolePermissionRouter.get(
+  "/:rlpPerIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("rlpPerIds", ROLE_PERMISSION.ERRORS.RLP_PER_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("rolePermission", "read"),
+    controller: getRolePermissionsByPerIds,
   })
 );
 

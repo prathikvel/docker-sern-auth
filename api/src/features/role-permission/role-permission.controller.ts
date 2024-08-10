@@ -9,6 +9,8 @@ import {
 import {
   findRolePermissionByRolId,
   findRolePermissionByPerId,
+  findRolePermissionsByRolIds,
+  findRolePermissionsByPerIds,
   createRolePermission,
   deleteRolePermission,
 } from "./role-permission.repository";
@@ -24,12 +26,32 @@ export const getRolePermissionByRolId: RequestHandler = (req, res, next) => {
 };
 
 /**
+ * Responds with rolePermissions with the given `rlpRolIds` parameter.
+ */
+export const getRolePermissionsByRolIds: RequestHandler = (req, res, next) => {
+  const rlpRolIds = req.params.rlpRolIds.split(",").filter(Boolean).map(Number);
+  findRolePermissionsByRolIds(rlpRolIds)
+    .then(respondRepository(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
  * Responds with a rolePermission with the given `rlpPerId` parameter.
  */
 export const getRolePermissionByPerId: RequestHandler = (req, res, next) => {
   const rlpPerId = Number(req.params.rlpPerId);
   findRolePermissionByPerId(rlpPerId)
     .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
+ * Responds with rolePermissions with the given `rlpPerIds` parameter.
+ */
+export const getRolePermissionsByPerIds: RequestHandler = (req, res, next) => {
+  const rlpPerIds = req.params.rlpPerIds.split(",").filter(Boolean).map(Number);
+  findRolePermissionsByPerIds(rlpPerIds)
+    .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
 
