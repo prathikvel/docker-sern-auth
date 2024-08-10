@@ -9,6 +9,8 @@ import {
 import {
   findUserRoleByUsrId,
   findUserRoleByRolId,
+  findUserRolesByUsrIds,
+  findUserRolesByRolIds,
   createUserRole,
   deleteUserRole,
 } from "./user-role.repository";
@@ -24,12 +26,32 @@ export const getUserRoleByUsrId: RequestHandler = (req, res, next) => {
 };
 
 /**
+ * Responds with userRoles with the given `urlUsrIds` parameter.
+ */
+export const getUserRolesByUsrIds: RequestHandler = (req, res, next) => {
+  const urlUsrIds = req.params.urlUsrIds.split(",").filter(Boolean).map(Number);
+  findUserRolesByUsrIds(urlUsrIds)
+    .then(respondRepository(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
  * Responds with a userRole with the given `urlRolId` parameter.
  */
 export const getUserRoleByRolId: RequestHandler = (req, res, next) => {
   const urlRolId = Number(req.params.urlRolId);
   findUserRoleByRolId(urlRolId)
     .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
+ * Responds with userRoles with the given `urlRolIds` parameter.
+ */
+export const getUserRolesByRolIds: RequestHandler = (req, res, next) => {
+  const urlRolIds = req.params.urlRolIds.split(",").filter(Boolean).map(Number);
+  findUserRolesByRolIds(urlRolIds)
+    .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
 

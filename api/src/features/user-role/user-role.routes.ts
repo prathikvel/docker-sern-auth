@@ -8,7 +8,9 @@ import { handlers } from "@/utils/routes.util";
 import { handleEntitySetAuthorization } from "../auth";
 import {
   getUserRoleByUsrId,
+  getUserRolesByUsrIds,
   getUserRoleByRolId,
+  getUserRolesByRolIds,
   addUserRole,
   removeUserRole,
 } from "./user-role.controller";
@@ -30,6 +32,24 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
+  "/:urlUsrIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("urlUsrIds", USER_ROLE.ERRORS.URL_USR_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("userRole", "read"),
+    controller: getUserRolesByUsrIds,
+  })
+);
+
+userRoleRouter.get(
   "/roles/:urlRolId(\d+)", // prettier-ignore
   handlers({
     validation: [
@@ -38,6 +58,24 @@ userRoleRouter.get(
     ],
     middleware: handleEntitySetAuthorization("userRole", "read"),
     controller: getUserRoleByRolId,
+  })
+);
+
+userRoleRouter.get(
+  "/:urlRolIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("urlRolIds", USER_ROLE.ERRORS.URL_ROL_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("userRole", "read"),
+    controller: getUserRolesByRolIds,
   })
 );
 
