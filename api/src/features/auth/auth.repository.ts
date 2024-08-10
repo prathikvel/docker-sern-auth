@@ -3,6 +3,7 @@ import { ExpressionBuilder, sql } from "kysely";
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
 import { jsonArrayFromExpr } from "@/utils/database.util";
+import { convertCamelToSnake } from "@/utils/string.util";
 
 /** The select query for role-based permissions. */
 const rolePermissions = (eb: ExpressionBuilder<Database, keyof Database>) => {
@@ -37,6 +38,7 @@ export const checkEntityAccess = async (
   perType: string,
   perEntity: number | null
 ) => {
+  perSet = convertCamelToSnake(perSet);
   const filters = { usrId, perSet, perType };
 
   const query = db.selectNoFrom((eb) =>
@@ -88,6 +90,7 @@ export const checkEntitiesAccess = async (
   perType: string,
   perEntities: number[]
 ) => {
+  perSet = convertCamelToSnake(perSet);
   const filters = { usrId, perSet, perType };
 
   const query = db
@@ -123,6 +126,7 @@ export const findAccessibleEntities = async (
   perSet: string,
   perType: string
 ) => {
+  perSet = convertCamelToSnake(perSet);
   const filters = { usrId, perSet, perType };
 
   const query = db
