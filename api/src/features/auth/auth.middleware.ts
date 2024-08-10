@@ -105,11 +105,11 @@ export const handleEntityAuthorization = (
  *
  * ```
  * // With default entity set
- * handleEntitiesAuthorization("item", "read"); // or
- * handleEntitiesAuthorization("item", "read", true);
+ * handleEntitySetAuthorization("item", "read"); // or
+ * handleEntitySetAuthorization("item", "read", true);
  *
  * // Without entity set access
- * handleEntitiesAuthorization("item", "read", false);
+ * handleEntitySetAuthorization("item", "read", false);
  * ```
  *
  * @param set The entity set to check access
