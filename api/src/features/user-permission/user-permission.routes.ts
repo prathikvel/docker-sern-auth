@@ -20,7 +20,7 @@ export const userPermissionRouter = express.Router();
 // ------------------------------- GET ------------------------------
 
 userPermissionRouter.get(
-  "/users/:urpUsrId(\d+)", // prettier-ignore
+  "/users/:urpUsrId(\\d+)",
   handlers({
     validation: [
       checkExact(param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt()),
@@ -32,7 +32,7 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/:urpUsrIds([\d,]+)", // prettier-ignore
+  "/:urpUsrIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -50,7 +50,7 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/permissions/:urpPerId(\d+)", // prettier-ignore
+  "/permissions/:urpPerId(\\d+)",
   handlers({
     validation: [
       checkExact(param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt()),
@@ -62,7 +62,7 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/:urpPerIds([\d,]+)", // prettier-ignore
+  "/:urpPerIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -99,7 +99,7 @@ userPermissionRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 userPermissionRouter.delete(
-  "/users/:urpUsrId(\d+)/permissions/:urpPerId(\d+)", // prettier-ignore
+  "/users/:urpUsrId(\\d+)/permissions/:urpPerId(\\d+)",
   handlers({
     validation: [
       checkExact([

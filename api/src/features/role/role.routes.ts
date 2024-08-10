@@ -28,7 +28,7 @@ roleRouter.get(
 );
 
 roleRouter.get(
-  "/:id(\d+)", // prettier-ignore
+  "/:id(\\d+)",
   handlers({
     validation: [
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
@@ -40,7 +40,7 @@ roleRouter.get(
 );
 
 roleRouter.get(
-  "/:ids([\d,]+)", // prettier-ignore
+  "/:ids([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -72,7 +72,7 @@ roleRouter.post(
 // ------------------------------- PUT ------------------------------
 
 roleRouter.put(
-  "/:id(\d+)", // prettier-ignore
+  "/:id(\\d+)",
   handlers({
     validation: [
       checkExact([
@@ -89,7 +89,7 @@ roleRouter.put(
 // ----------------------------- DELETE -----------------------------
 
 roleRouter.delete(
-  "/:id(\d+)", // prettier-ignore
+  "/:id(\\d+)",
   handlers({
     validation: [
       checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),

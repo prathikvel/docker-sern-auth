@@ -20,7 +20,7 @@ export const rolePermissionRouter = express.Router();
 // ------------------------------- GET ------------------------------
 
 rolePermissionRouter.get(
-  "/roles/:rlpRolId(\d+)", // prettier-ignore
+  "/roles/:rlpRolId(\\d+)",
   handlers({
     validation: [
       checkExact(param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt()),
@@ -32,7 +32,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/:rlpRolIds([\d,]+)", // prettier-ignore
+  "/:rlpRolIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -50,7 +50,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/permissions/:rlpPerId(\d+)", // prettier-ignore
+  "/permissions/:rlpPerId(\\d+)",
   handlers({
     validation: [
       checkExact(param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt()),
@@ -62,7 +62,7 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/:rlpPerIds([\d,]+)", // prettier-ignore
+  "/:rlpPerIds([\\d,]+)",
   handlers({
     validation: [
       checkExact(
@@ -99,7 +99,7 @@ rolePermissionRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 rolePermissionRouter.delete(
-  "/roles/:rlpRolId(\d+)/permissions/:rlpPerId(\d+)", // prettier-ignore
+  "/roles/:rlpRolId(\\d+)/permissions/:rlpPerId(\\d+)",
   handlers({
     validation: [
       checkExact([
