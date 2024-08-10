@@ -9,6 +9,8 @@ import {
 import {
   findUserPermissionByUsrId,
   findUserPermissionByPerId,
+  findUserPermissionsByUsrIds,
+  findUserPermissionsByPerIds,
   createUserPermission,
   deleteUserPermission,
 } from "./user-permission.repository";
@@ -24,12 +26,32 @@ export const getUserPermissionByUsrId: RequestHandler = (req, res, next) => {
 };
 
 /**
+ * Responds with userPermissions with the given `urpUsrIds` parameter.
+ */
+export const getUserPermissionsByUsrIds: RequestHandler = (req, res, next) => {
+  const urpUsrIds = req.params.urpUsrIds.split(",").filter(Boolean).map(Number);
+  findUserPermissionsByUsrIds(urpUsrIds)
+    .then(respondRepository(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
  * Responds with a userPermission with the given `urpPerId` parameter.
  */
 export const getUserPermissionByPerId: RequestHandler = (req, res, next) => {
   const urpPerId = Number(req.params.urpPerId);
   findUserPermissionByPerId(urpPerId)
     .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
+ * Responds with userPermissions with the given `urpPerIds` parameter.
+ */
+export const getUserPermissionsByPerIds: RequestHandler = (req, res, next) => {
+  const urpPerIds = req.params.urpPerIds.split(",").filter(Boolean).map(Number);
+  findUserPermissionsByPerIds(urpPerIds)
+    .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
 

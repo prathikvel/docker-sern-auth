@@ -8,7 +8,9 @@ import { handlers } from "@/utils/routes.util";
 import { handleEntitySetAuthorization } from "../auth";
 import {
   getUserPermissionByUsrId,
+  getUserPermissionsByUsrIds,
   getUserPermissionByPerId,
+  getUserPermissionsByPerIds,
   addUserPermission,
   removeUserPermission,
 } from "./user-permission.controller";
@@ -30,6 +32,24 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
+  "/:urpUsrIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("urpUsrIds", USER_PERMISSION.ERRORS.URP_USR_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("userPermission", "read"),
+    controller: getUserPermissionsByUsrIds,
+  })
+);
+
+userPermissionRouter.get(
   "/permissions/:urpPerId(\d+)", // prettier-ignore
   handlers({
     validation: [
@@ -38,6 +58,24 @@ userPermissionRouter.get(
     ],
     middleware: handleEntitySetAuthorization("userPermission", "read"),
     controller: getUserPermissionByPerId,
+  })
+);
+
+userPermissionRouter.get(
+  "/:urpPerIds([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("urpPerIds", USER_PERMISSION.ERRORS.URP_PER_ID).custom(
+          (value: string) => {
+            return value.split(",").every((v) => v && !isNaN(Number(v)));
+          }
+        )
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("userPermission", "read"),
+    controller: getUserPermissionsByPerIds,
   })
 );
 
