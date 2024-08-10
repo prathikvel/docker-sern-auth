@@ -7,12 +7,14 @@ import { handlers } from "@/utils/routes.util";
 
 import {
   handleEntityAuthorization,
+  handleEntitiesAuthorization,
   handleEntitySetAuthorization,
 } from "../auth";
 import {
   getCurrentUser,
-  getUserById,
   getUsers,
+  getUserById,
+  getUsersByIds,
   addUser,
   editUser,
   editUserPassword,
@@ -33,7 +35,7 @@ userRouter.get(
 userRouter.get(
   "/",
   handlers({
-    middleware: handleEntitySetAuthorization("user", "read", false),
+    middleware: handleEntitySetAuthorization("user", "read"),
     controller: getUsers,
   })
 );
@@ -47,6 +49,22 @@ userRouter.get(
     ],
     middleware: handleEntityAuthorization("user", "read"),
     controller: getUserById,
+  })
+);
+
+userRouter.get(
+  "/:ids([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("ids", USER.ERRORS.USR_ID).custom((value: string) => {
+          return value.split(",").every((v) => v && !isNaN(Number(v)));
+        })
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitiesAuthorization("user", "read"),
+    controller: getUsersByIds,
   })
 );
 

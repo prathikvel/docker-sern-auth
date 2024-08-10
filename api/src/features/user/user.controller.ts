@@ -1,13 +1,13 @@
 import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
 
-import { AUTH, USER, ERRORS } from "@/configs/global.config";
+import { AUTH, USER } from "@/configs/global.config";
 import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
 } from "@/utils/controller.util";
-import { ClientError, ServerError } from "@/utils/error.util";
+import { ClientError } from "@/utils/error.util";
 
 import { createPermissible, deletePermissible } from "../permissible";
 import {
@@ -31,20 +31,7 @@ export const getCurrentUser: RequestHandler = (req, res) => {
  * Responds with all system users.
  */
 export const getUsers: RequestHandler = (req, res, next) => {
-  const { authInfo } = res.locals;
-  if (authInfo) {
-    if (authInfo.entitySet) {
-      findUsers()
-        .then(respondRepository(res))
-        .catch(handleRepositoryError(next));
-    } else {
-      findUsersByIds(authInfo.entities)
-        .then(respondRepository(res))
-        .catch(handleRepositoryError(next));
-    }
-  } else {
-    next(new ServerError(500, ERRORS[500]));
-  }
+  findUsers().then(respondRepository(res)).catch(handleRepositoryError(next));
 };
 
 /**
@@ -54,6 +41,16 @@ export const getUserById: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
   findUserById(id)
     .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
+ * Responds with users with the given `ids` parameter.
+ */
+export const getUsersByIds: RequestHandler = (req, res, next) => {
+  const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  findUsersByIds(ids)
+    .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
 
