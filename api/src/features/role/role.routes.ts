@@ -7,8 +7,9 @@ import { handlers } from "@/utils/routes.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
-  getRoleById,
   getRoles,
+  getRoleById,
+  getRolesByIds,
   addRole,
   editRole,
   removeRole,
@@ -35,6 +36,22 @@ roleRouter.get(
     ],
     middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoleById,
+  })
+);
+
+roleRouter.get(
+  "/:ids([\d,]+)", // prettier-ignore
+  handlers({
+    validation: [
+      checkExact(
+        param("ids", ROLE.ERRORS.ROL_ID).custom((value: string) => {
+          return value.split(",").every((v) => v && !isNaN(Number(v)));
+        })
+      ),
+      handleValidation,
+    ],
+    middleware: handleEntitySetAuthorization("role", "read"),
+    controller: getRolesByIds,
   })
 );
 

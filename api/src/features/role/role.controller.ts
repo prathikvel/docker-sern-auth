@@ -9,6 +9,7 @@ import {
 import {
   findRoleById,
   findRoles,
+  findRolesByIds,
   createRole,
   updateRole,
   deleteRole,
@@ -28,6 +29,16 @@ export const getRoleById: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
   findRoleById(id)
     .then(respondRepositoryOrThrow(res))
+    .catch(handleRepositoryError(next));
+};
+
+/**
+ * Responds with roles with the given `ids` parameter.
+ */
+export const getRolesByIds: RequestHandler = (req, res, next) => {
+  const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  findRolesByIds(ids)
+    .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
 
