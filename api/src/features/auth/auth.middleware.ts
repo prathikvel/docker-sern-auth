@@ -63,16 +63,17 @@ export const handleEntityAuthorization = (
     const { usrId } = req.user!;
 
     // entity resolution
-    if (entity === null) {
+    let resEntity = entity;
+    if (resEntity === null) {
       if (!isNaN(Number(req.params.id))) {
-        entity = Number(req.params.id);
+        resEntity = Number(req.params.id);
       }
     }
 
     // entity management
     let isAuthorized;
-    if (entity !== null) {
-      isAuthorized = await checkEntityAccess(usrId, set, type, entity);
+    if (resEntity !== null) {
+      isAuthorized = await checkEntityAccess(usrId, set, type, resEntity);
     }
 
     return isAuthorized ? next() : next(new AuthorizationError("Forbidden"));
@@ -122,19 +123,20 @@ export const handleEntitiesAuthorization = (
     const { usrId } = req.user!;
 
     // entities resolution
-    if (entities === null) {
+    let resEntities = entities;
+    if (resEntities === null) {
       if (/[\d,]+/.test(req.params.ids)) {
-        entities = req.params.ids.split(",").filter(Boolean).map(Number);
+        resEntities = req.params.ids.split(",").filter(Boolean).map(Number);
       }
     }
 
     // entities management
     let isAuthorized;
-    if (entities !== null) {
+    if (resEntities !== null) {
       isAuthorized = await checkEntityAccess(usrId, set, type, null);
 
       if (!isAuthorized) {
-        isAuthorized = await checkEntitiesAccess(usrId, set, type, entities);
+        isAuthorized = await checkEntitiesAccess(usrId, set, type, resEntities);
       }
     }
 
