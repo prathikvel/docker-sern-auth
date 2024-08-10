@@ -72,6 +72,44 @@ export const checkEntityAccess = async (
 };
 
 /**
+ * Checks if the given user has the permission for all the given entities based
+ * on user's role and individual permissions. Returns true if user has access to
+ * all the given entities and false otherwise.
+ *
+ * @param usrId The user's `usrId`
+ * @param perSet The permission's `perSet`
+ * @param perType The permission's `perType`
+ * @param perEntities The permission's `perEntity`s
+ * @returns A boolean representing the given user's access to the given entities
+ */
+export const checkEntitiesAccess = async (
+  usrId: number,
+  perSet: string,
+  perType: string,
+  perEntities: number[]
+) => {
+  const filters = { usrId, perSet, perType };
+
+  const query = db
+    .selectFrom((eb) =>
+      rolePermissions(eb)
+        .where((eb) => eb.and(filters))
+        .where("perEntity", "in", perEntities)
+        .select("perEntity")
+        .union((eb) =>
+          userPermissions(eb)
+            .where((eb) => eb.and(filters))
+            .where("perEntity", "in", perEntities)
+            .select("perEntity")
+        )
+        .as("union")
+    )
+    .select((eb) => eb.fn.countAll<number>().as("count"));
+
+  return perEntities.length === (await query.executeTakeFirstOrThrow()).count;
+};
+
+/**
  * Returns an array of entities the user has access to based on the given entity
  * set and permission type.
  *
