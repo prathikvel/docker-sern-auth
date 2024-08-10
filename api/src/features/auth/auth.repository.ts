@@ -38,8 +38,7 @@ export const checkEntityAccess = async (
   perType: string,
   perEntity: number | null
 ) => {
-  perSet = convertCamelToSnake(perSet);
-  const filters = { usrId, perSet, perType };
+  const filters = { usrId, perSet: convertCamelToSnake(perSet), perType };
 
   const query = db.selectNoFrom((eb) =>
     eb
@@ -90,8 +89,7 @@ export const checkEntitiesAccess = async (
   perType: string,
   perEntities: number[]
 ) => {
-  perSet = convertCamelToSnake(perSet);
-  const filters = { usrId, perSet, perType };
+  const filters = { usrId, perSet: convertCamelToSnake(perSet), perType };
 
   const query = db
     .selectFrom((eb) =>
@@ -126,8 +124,7 @@ export const findAccessibleEntities = async (
   perSet: string,
   perType: string
 ) => {
-  perSet = convertCamelToSnake(perSet);
-  const filters = { usrId, perSet, perType };
+  const filters = { usrId, perSet: convertCamelToSnake(perSet), perType };
 
   const query = db
     .selectFrom((eb) =>
