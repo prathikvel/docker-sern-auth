@@ -1,7 +1,25 @@
-import { sql } from "kysely";
+import { ExpressionBuilder, sql } from "kysely";
 
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { jsonArrayFromExpr } from "@/utils/database.util";
+
+/** The select query for role-based permissions. */
+const rolePermissions = (eb: ExpressionBuilder<Database, keyof Database>) => {
+  return eb
+    .selectFrom("user")
+    .innerJoin("userRole", "urlUsrId", "usrId")
+    .innerJoin("rolePermission", "rlpRolId", "urlRolId")
+    .innerJoin("permission", "perId", "rlpPerId");
+};
+
+/** The select query for user-based permissions. */
+const userPermissions = (eb: ExpressionBuilder<Database, keyof Database>) => {
+  return eb
+    .selectFrom("user")
+    .innerJoin("userPermission", "urpUsrId", "usrId")
+    .innerJoin("permission", "perId", "urpPerId");
+};
 
 /**
  * Checks if the given user has the given permission based on user's role and
@@ -19,27 +37,34 @@ export const checkEntityAccess = async (
   perType: string,
   perEntity: number | null
 ) => {
+  const filters = { usrId, perSet, perType };
+
   const query = db.selectNoFrom((eb) =>
     eb
-      .exists(
-        eb
-          .selectFrom("user")
-          .innerJoin("userRole", "urlUsrId", "usrId")
-          .innerJoin("userPermission", "urpUsrId", "usrId")
-          .innerJoin("rolePermission", "rlpRolId", "urlRolId")
-          .innerJoin("permission", "perId", "rlpPerId")
-          .innerJoin("permission", "perId", "urpPerId")
-          .where("usrId", "=", usrId)
-          .where("perSet", "=", perSet)
-          .where("perType", "=", perType)
-          .where((eb) =>
-            eb.or([
-              eb("perEntity", "is", null),
-              eb("perEntity", "=", perEntity),
-            ])
-          )
-          .select(sql`1` as any)
-      )
+      .or([
+        eb.exists(
+          rolePermissions(eb)
+            .where((eb) => eb.and(filters))
+            .where((eb) =>
+              eb.or([
+                eb("perEntity", "is", null),
+                eb("perEntity", "=", perEntity),
+              ])
+            )
+            .select(sql`1` as any)
+        ),
+        eb.exists(
+          userPermissions(eb)
+            .where((eb) => eb.and(filters))
+            .where((eb) =>
+              eb.or([
+                eb("perEntity", "is", null),
+                eb("perEntity", "=", perEntity),
+              ])
+            )
+            .select(sql`1` as any)
+        ),
+      ])
       .as("exists")
   );
 
@@ -60,17 +85,21 @@ export const findAccessibleEntities = async (
   perSet: string,
   perType: string
 ) => {
-  const query = db
-    .selectFrom("user")
-    .innerJoin("userRole", "urlUsrId", "usrId")
-    .innerJoin("userPermission", "urpUsrId", "usrId")
-    .innerJoin("rolePermission", "rlpRolId", "urlRolId")
-    .innerJoin("permission", "perId", "rlpPerId")
-    .innerJoin("permission", "perId", "urpPerId")
-    .where("usrId", "=", usrId)
-    .where("perSet", "=", perSet)
-    .where("perType", "=", perType)
-    .select((eb) => jsonArrayFromExpr(eb.ref("perEntity")).as("perEntities"));
+  const filters = { usrId, perSet, perType };
 
-  return (await query.executeTakeFirstOrThrow()).perEntities;
+  const query = db
+    .selectFrom((eb) =>
+      rolePermissions(eb)
+        .where((eb) => eb.and(filters))
+        .select("perEntity")
+        .union((eb) =>
+          userPermissions(eb)
+            .where((eb) => eb.and(filters))
+            .select("perEntity")
+        )
+        .as("union")
+    )
+    .select((eb) => jsonArrayFromExpr(eb.ref("perEntity")).as("entities"));
+
+  return (await query.executeTakeFirstOrThrow()).entities;
 };
