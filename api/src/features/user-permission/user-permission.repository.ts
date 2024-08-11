@@ -1,40 +1,85 @@
-import { ExpressionBuilder } from "kysely";
+import { sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
-import { Database } from "@/models";
+import { jsonArrayFromExpr } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
+import { Permission } from "../permission";
+import { User } from "../user";
 import {
   UserPermission,
   NewUserPermission,
   UserPermissionUpdate,
 } from "./user-permission.model";
 
+/** A UserPermission with an array of users. */
+type UserPermissionWithUsers = Pick<UserPermission, "urpPerId"> & {
+  users: Omit<User, "usrPassword">[];
+};
+
+/** A UserPermission with an array of permissions. */
+type UserPermissionWithPermissions = Pick<UserPermission, "urpUsrId"> & {
+  permissions: Permission[];
+};
+
 /** The columns to filter, including all userPermission columns. */
 const columns = ["urpUsrId", "urpPerId", "urpCreated"] as const;
 
-/** The user columns to select, including all user columns except
- * `usrPassword`. */
-const userColumns = (eb: ExpressionBuilder<Database, "userPermission">) => {
-  return jsonArrayFrom(
-    eb
-      .selectFrom("user")
-      .whereRef("usrId", "=", "urpUsrId")
-      .select(["usrId", "usrName", "usrEmail", "usrCreated"])
-  ).as("users");
+/**
+ * The generic function to find userPermission(s) with the given `usrId`(s).
+ *
+ * @param usrId The userPermission's `urpUsrId`(s)
+ * @returns The userPermission(s) and their related permissions or undefined
+ */
+const findByUsrId = (usrId: number | number[]) => {
+  const query = db
+    .selectFrom((eb) => {
+      const innerQuery = eb
+        .selectFrom("userPermission")
+        .where("urpUsrId", typeof usrId === "number" ? "=" : "in", usrId)
+        .select((eb) => jsonArrayFromExpr(eb.ref("urpPerId")).as("perIds"));
+
+      return innerQuery.select("urpUsrId").groupBy("urpUsrId").as("agg");
+    })
+    .select((eb) => {
+      const outerQuery = eb
+        .selectFrom("permission")
+        .whereRef("perId", sql`MEMBER OF`, eb.parens(eb.ref("perIds")))
+        .select(["perId", "perSet", "perType", "perEntity", "perCreated"]);
+
+      return ["urpUsrId", jsonArrayFrom(outerQuery).as("permissions")];
+    });
+
+  return typeof usrId === "number" ? query.executeTakeFirst() : query.execute();
 };
 
-/** The permission columns to select, including all permission columns. */
-const permissionColumns = (
-  eb: ExpressionBuilder<Database, "userPermission">
-) => {
-  return jsonArrayFrom(
-    eb
-      .selectFrom("permission")
-      .whereRef("perId", "=", "urpPerId")
-      .select(["perId", "perSet", "perType", "perEntity", "perCreated"])
-  ).as("permissions");
+/**
+ * The generic function to find userPermission(s) with the given `perId`(s).
+ *
+ * @param perId The userPermission's `urpPerId`(s)
+ * @returns The userPermission(s) and their corresponding users or undefined
+ */
+const findByPerId = (perId: number | number[]) => {
+  const query = db
+    .selectFrom((eb) => {
+      const innerQuery = eb
+        .selectFrom("userPermission")
+        .where("urpPerId", typeof perId === "number" ? "=" : "in", perId)
+        .select((eb) => jsonArrayFromExpr(eb.ref("urpUsrId")).as("usrIds"));
+
+      return innerQuery.select("urpPerId").groupBy("urpPerId").as("agg");
+    })
+    .select((eb) => {
+      const outerQuery = eb
+        .selectFrom("user")
+        .whereRef("usrId", sql`MEMBER OF`, eb.parens(eb.ref("usrIds")))
+        .select(["usrId", "usrName", "usrEmail", "usrCreated"]);
+
+      return ["urpPerId", jsonArrayFrom(outerQuery).as("users")];
+    });
+
+  return typeof perId === "number" ? query.executeTakeFirst() : query.execute();
 };
 
 /**
@@ -60,11 +105,8 @@ export const findUserPermissionById = (usrId: number, perId: number) => {
  * @param usrId The userPermission's `urpUsrId`
  * @returns The userPermission or undefined if the `usrId` is invalid
  */
-export const findUserPermissionByUsrId = (usrId: number) => {
-  const query = db.selectFrom("userPermission").where("urpUsrId", "=", usrId);
-
-  return query.selectAll().select(permissionColumns).executeTakeFirst();
-};
+export const findUserPermissionByUsrId = (usrId: number) =>
+  findByUsrId(usrId) as Promise<UserPermissionWithPermissions | undefined>;
 
 /**
  * Returns the userPermission and its users or undefined if the `perId` is
@@ -73,11 +115,8 @@ export const findUserPermissionByUsrId = (usrId: number) => {
  * @param perId The userPermission's `urpPerId`
  * @returns The userPermission or undefined if the `perId` is invalid
  */
-export const findUserPermissionByPerId = (perId: number) => {
-  const query = db.selectFrom("userPermission").where("urpPerId", "=", perId);
-
-  return query.selectAll().select(userColumns).executeTakeFirst();
-};
+export const findUserPermissionByPerId = (perId: number) =>
+  findByPerId(perId) as Promise<UserPermissionWithUsers | undefined>;
 
 /**
  * Returns an array of userPermissions that match the given criteria. Returns
@@ -102,11 +141,8 @@ export const findUserPermissions = (criteria: Partial<UserPermission> = {}) => {
  * @param usrIds An array of `urpUsrId`s
  * @returns An array of userPermissions and their permissions that have `usrId`s
  */
-export const findUserPermissionsByUsrIds = (usrIds: number[]) => {
-  const query = db.selectFrom("userPermission").where("urpUsrId", "in", usrIds);
-
-  return query.selectAll().select(permissionColumns).execute();
-};
+export const findUserPermissionsByUsrIds = (usrIds: number[]) =>
+  findByUsrId(usrIds) as Promise<UserPermissionWithPermissions[]>;
 
 /**
  * Returns an array of userPermissions and their users that have the given
@@ -115,11 +151,8 @@ export const findUserPermissionsByUsrIds = (usrIds: number[]) => {
  * @param perIds An array of `urpPerId`s
  * @returns An array of userPermissions and their users that have the `perId`s
  */
-export const findUserPermissionsByPerIds = (perIds: number[]) => {
-  const query = db.selectFrom("userPermission").where("urpPerId", "in", perIds);
-
-  return query.selectAll().select(userColumns).execute();
-};
+export const findUserPermissionsByPerIds = (perIds: number[]) =>
+  findByPerId(perIds) as Promise<UserPermissionWithUsers[]>;
 
 /**
  * Inserts a new userPermission in the database and returns the newly created

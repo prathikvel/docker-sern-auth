@@ -1,39 +1,85 @@
-import { ExpressionBuilder } from "kysely";
+import { sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
-import { Database } from "@/models";
+import { jsonArrayFromExpr } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
+import { Permission } from "../permission";
+import { Role } from "../role";
 import {
   RolePermission,
   NewRolePermission,
   RolePermissionUpdate,
 } from "./role-permission.model";
 
+/** A RolePermission with an array of roles. */
+type RolePermissionWithRoles = Pick<RolePermission, "rlpPerId"> & {
+  roles: Role[];
+};
+
+/** A RolePermission with an array of permissions. */
+type RolePermissionWithPermissions = Pick<RolePermission, "rlpRolId"> & {
+  permissions: Permission[];
+};
+
 /** The columns to filter, including all rolePermission columns. */
 const columns = ["rlpRolId", "rlpPerId", "rlpCreated"] as const;
 
-/** The role columns to select, including all role columns. */
-const roleColumns = (eb: ExpressionBuilder<Database, "rolePermission">) => {
-  return jsonArrayFrom(
-    eb
-      .selectFrom("role")
-      .whereRef("rolId", "=", "rlpRolId")
-      .select(["rolId", "rolName", "rolCreated"])
-  ).as("roles");
+/**
+ * The generic function to find rolePermission(s) with the given `rolId`(s).
+ *
+ * @param rolId The rolePermission's `rlpRolId`(s)
+ * @returns The rolePermission(s) and their related permissions or undefined
+ */
+const findByRolId = (rolId: number | number[]) => {
+  const query = db
+    .selectFrom((eb) => {
+      const innerQuery = eb
+        .selectFrom("rolePermission")
+        .where("rlpRolId", typeof rolId === "number" ? "=" : "in", rolId)
+        .select((eb) => jsonArrayFromExpr(eb.ref("rlpPerId")).as("perIds"));
+
+      return innerQuery.select("rlpRolId").groupBy("rlpRolId").as("agg");
+    })
+    .select((eb) => {
+      const outerQuery = eb
+        .selectFrom("permission")
+        .whereRef("perId", sql`MEMBER OF`, eb.parens(eb.ref("perIds")))
+        .select(["perId", "perSet", "perType", "perEntity", "perCreated"]);
+
+      return ["rlpRolId", jsonArrayFrom(outerQuery).as("permissions")];
+    });
+
+  return typeof rolId === "number" ? query.executeTakeFirst() : query.execute();
 };
 
-/** The permission columns to select, including all permission columns. */
-const permissionColumns = (
-  eb: ExpressionBuilder<Database, "rolePermission">
-) => {
-  return jsonArrayFrom(
-    eb
-      .selectFrom("permission")
-      .whereRef("perId", "=", "rlpPerId")
-      .select(["perId", "perSet", "perType", "perEntity", "perCreated"])
-  ).as("permissions");
+/**
+ * The generic function to find rolePermission(s) with the given `perId`(s).
+ *
+ * @param perId The rolePermission's `rlpPerId`(s)
+ * @returns The rolePermission(s) and their corresponding roles or undefined
+ */
+const findByPerId = (perId: number | number[]) => {
+  const query = db
+    .selectFrom((eb) => {
+      const innerQuery = eb
+        .selectFrom("rolePermission")
+        .where("rlpPerId", typeof perId === "number" ? "=" : "in", perId)
+        .select((eb) => jsonArrayFromExpr(eb.ref("rlpRolId")).as("rolIds"));
+
+      return innerQuery.select("rlpPerId").groupBy("rlpPerId").as("agg");
+    })
+    .select((eb) => {
+      const outerQuery = eb
+        .selectFrom("role")
+        .whereRef("rolId", sql`MEMBER OF`, eb.parens(eb.ref("rolIds")))
+        .select(["rolId", "rolName", "rolCreated"]);
+
+      return ["rlpPerId", jsonArrayFrom(outerQuery).as("roles")];
+    });
+
+  return typeof perId === "number" ? query.executeTakeFirst() : query.execute();
 };
 
 /**
@@ -59,11 +105,8 @@ export const findRolePermissionById = (rolId: number, perId: number) => {
  * @param rolId The rolePermission's `rlpRolId`
  * @returns The rolePermission or undefined if the `rolId` is invalid
  */
-export const findRolePermissionByRolId = (rolId: number) => {
-  const query = db.selectFrom("rolePermission").where("rlpRolId", "=", rolId);
-
-  return query.selectAll().select(permissionColumns).executeTakeFirst();
-};
+export const findRolePermissionByRolId = (rolId: number) =>
+  findByRolId(rolId) as Promise<RolePermissionWithPermissions | undefined>;
 
 /**
  * Returns the rolePermission and its roles or undefined if the `perId` is
@@ -72,11 +115,8 @@ export const findRolePermissionByRolId = (rolId: number) => {
  * @param perId The rolePermission's `rlpPerId`
  * @returns The rolePermission or undefined if the `perId` is invalid
  */
-export const findRolePermissionByPerId = (perId: number) => {
-  const query = db.selectFrom("rolePermission").where("rlpPerId", "=", perId);
-
-  return query.selectAll().select(roleColumns).executeTakeFirst();
-};
+export const findRolePermissionByPerId = (perId: number) =>
+  findByPerId(perId) as Promise<RolePermissionWithRoles | undefined>;
 
 /**
  * Returns an array of rolePermissions that match the given criteria. Returns
@@ -101,11 +141,8 @@ export const findRolePermissions = (criteria: Partial<RolePermission> = {}) => {
  * @param rolIds An array of `rlpRolId`s
  * @returns An array of rolePermissions and their permissions that have `rolId`s
  */
-export const findRolePermissionsByRolIds = (rolIds: number[]) => {
-  const query = db.selectFrom("rolePermission").where("rlpRolId", "in", rolIds);
-
-  return query.selectAll().select(permissionColumns).execute();
-};
+export const findRolePermissionsByRolIds = (rolIds: number[]) =>
+  findByRolId(rolIds) as Promise<RolePermissionWithPermissions[]>;
 
 /**
  * Returns an array of rolePermissions and their roles that have the given
@@ -114,11 +151,8 @@ export const findRolePermissionsByRolIds = (rolIds: number[]) => {
  * @param perIds An array of `rlpPerId`s
  * @returns An array of rolePermissions and their roles that have the `perId`s
  */
-export const findRolePermissionsByPerIds = (perIds: number[]) => {
-  const query = db.selectFrom("rolePermission").where("rlpPerId", "in", perIds);
-
-  return query.selectAll().select(roleColumns).execute();
-};
+export const findRolePermissionsByPerIds = (perIds: number[]) =>
+  findByPerId(perIds) as Promise<RolePermissionWithRoles[]>;
 
 /**
  * Inserts a new rolePermission in the database and returns the newly created
