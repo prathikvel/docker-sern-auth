@@ -4,6 +4,7 @@ import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
+  includeRepositorySetPerms,
 } from "@/utils/controller.util";
 
 import {
@@ -20,7 +21,17 @@ import {
  */
 export const getUserRoleByUsrId: RequestHandler = (req, res, next) => {
   const urlUsrId = Number(req.params.urlUsrId);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserRoleByUsrId(urlUsrId)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userRole")(data);
+      }
+      return data as Record<string, any>;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -30,7 +41,17 @@ export const getUserRoleByUsrId: RequestHandler = (req, res, next) => {
  */
 export const getUserRolesByUsrIds: RequestHandler = (req, res, next) => {
   const urlUsrIds = req.params.urlUsrIds.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserRolesByUsrIds(urlUsrIds)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userRole")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -40,7 +61,17 @@ export const getUserRolesByUsrIds: RequestHandler = (req, res, next) => {
  */
 export const getUserRoleByRolId: RequestHandler = (req, res, next) => {
   const urlRolId = Number(req.params.urlRolId);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserRoleByRolId(urlRolId)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userRole")(data);
+      }
+      return data as Record<string, any>;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -50,7 +81,17 @@ export const getUserRoleByRolId: RequestHandler = (req, res, next) => {
  */
 export const getUserRolesByRolIds: RequestHandler = (req, res, next) => {
   const urlRolIds = req.params.urlRolIds.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserRolesByRolIds(urlRolIds)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userRole")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };

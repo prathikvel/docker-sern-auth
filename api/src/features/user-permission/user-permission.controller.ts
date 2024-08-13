@@ -4,6 +4,7 @@ import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
+  includeRepositorySetPerms,
 } from "@/utils/controller.util";
 
 import {
@@ -20,7 +21,17 @@ import {
  */
 export const getUserPermissionByUsrId: RequestHandler = (req, res, next) => {
   const urpUsrId = Number(req.params.urpUsrId);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserPermissionByUsrId(urpUsrId)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userPermission")(data);
+      }
+      return data as Record<string, any>;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -30,7 +41,17 @@ export const getUserPermissionByUsrId: RequestHandler = (req, res, next) => {
  */
 export const getUserPermissionsByUsrIds: RequestHandler = (req, res, next) => {
   const urpUsrIds = req.params.urpUsrIds.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserPermissionsByUsrIds(urpUsrIds)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userPermission")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -40,7 +61,17 @@ export const getUserPermissionsByUsrIds: RequestHandler = (req, res, next) => {
  */
 export const getUserPermissionByPerId: RequestHandler = (req, res, next) => {
   const urpPerId = Number(req.params.urpPerId);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserPermissionByPerId(urpPerId)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userPermission")(data);
+      }
+      return data as Record<string, any>;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -50,7 +81,17 @@ export const getUserPermissionByPerId: RequestHandler = (req, res, next) => {
  */
 export const getUserPermissionsByPerIds: RequestHandler = (req, res, next) => {
   const urpPerIds = req.params.urpPerIds.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserPermissionsByPerIds(urpPerIds)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "userPermission")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };

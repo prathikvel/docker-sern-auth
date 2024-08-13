@@ -1,5 +1,5 @@
 import express from "express";
-import { checkExact, param, body } from "express-validator";
+import { checkExact, param, query, body } from "express-validator";
 
 import { ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
@@ -22,6 +22,10 @@ export const roleRouter = express.Router();
 roleRouter.get(
   "/",
   handlers({
+    validation: [
+      checkExact(query("permissions").isBoolean().optional()),
+      handleValidation,
+    ],
     middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoles,
   })
@@ -31,7 +35,10 @@ roleRouter.get(
   "/:id(\\d+)",
   handlers({
     validation: [
-      checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
+      checkExact([
+        param("id", ROLE.ERRORS.ROL_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),
@@ -43,11 +50,12 @@ roleRouter.get(
   "/:ids([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("ids", ROLE.ERRORS.ROL_ID).custom((value: string) => {
           return value.split(",").every((v) => v && !isNaN(Number(v)));
-        })
-      ),
+        }),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),

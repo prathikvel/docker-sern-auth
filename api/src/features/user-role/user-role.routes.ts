@@ -1,5 +1,5 @@
 import express from "express";
-import { checkExact, param, body } from "express-validator";
+import { checkExact, param, query, body } from "express-validator";
 
 import { USER_ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
@@ -23,7 +23,10 @@ userRoleRouter.get(
   "/users/:urlUsrId(\\d+)",
   handlers({
     validation: [
-      checkExact(param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt()),
+      checkExact([
+        param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userRole", "read"),
@@ -35,13 +38,14 @@ userRoleRouter.get(
   "/users/:urlUsrIds([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("urlUsrIds", USER_ROLE.ERRORS.URL_USR_ID).custom(
           (value: string) => {
             return value.split(",").every((v) => v && !isNaN(Number(v)));
           }
-        )
-      ),
+        ),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userRole", "read"),
@@ -53,7 +57,10 @@ userRoleRouter.get(
   "/roles/:urlRolId(\\d+)",
   handlers({
     validation: [
-      checkExact(param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt()),
+      checkExact([
+        param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userRole", "read"),
@@ -65,13 +72,14 @@ userRoleRouter.get(
   "/roles/:urlRolIds([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("urlRolIds", USER_ROLE.ERRORS.URL_ROL_ID).custom(
           (value: string) => {
             return value.split(",").every((v) => v && !isNaN(Number(v)));
           }
-        )
-      ),
+        ),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userRole", "read"),

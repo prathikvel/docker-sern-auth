@@ -1,5 +1,5 @@
 import express from "express";
-import { checkExact, param, body } from "express-validator";
+import { checkExact, param, query, body } from "express-validator";
 
 import { USER_PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
@@ -23,7 +23,10 @@ userPermissionRouter.get(
   "/users/:urpUsrId(\\d+)",
   handlers({
     validation: [
-      checkExact(param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt()),
+      checkExact([
+        param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "read"),
@@ -35,13 +38,14 @@ userPermissionRouter.get(
   "/users/:urpUsrIds([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("urpUsrIds", USER_PERMISSION.ERRORS.URP_USR_ID).custom(
           (value: string) => {
             return value.split(",").every((v) => v && !isNaN(Number(v)));
           }
-        )
-      ),
+        ),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "read"),
@@ -53,7 +57,10 @@ userPermissionRouter.get(
   "/permissions/:urpPerId(\\d+)",
   handlers({
     validation: [
-      checkExact(param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt()),
+      checkExact([
+        param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "read"),
@@ -65,13 +72,14 @@ userPermissionRouter.get(
   "/permissions/:urpPerIds([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("urpPerIds", USER_PERMISSION.ERRORS.URP_PER_ID).custom(
           (value: string) => {
             return value.split(",").every((v) => v && !isNaN(Number(v)));
           }
-        )
-      ),
+        ),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "read"),

@@ -4,6 +4,7 @@ import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
+  includeRepositorySetPerms,
 } from "@/utils/controller.util";
 
 import {
@@ -19,7 +20,19 @@ import {
  * Responds with all system roles.
  */
 export const getRoles: RequestHandler = (req, res, next) => {
-  findRoles().then(respondRepository(res)).catch(handleRepositoryError(next));
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
+  findRoles()
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "role")(data);
+      }
+      return data;
+    })
+    .then(respondRepository(res))
+    .catch(handleRepositoryError(next));
 };
 
 /**
@@ -27,7 +40,17 @@ export const getRoles: RequestHandler = (req, res, next) => {
  */
 export const getRoleById: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findRoleById(id)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "role")(data);
+      }
+      return data as Record<string, any>;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -37,7 +60,17 @@ export const getRoleById: RequestHandler = (req, res, next) => {
  */
 export const getRolesByIds: RequestHandler = (req, res, next) => {
   const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findRolesByIds(ids)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositorySetPerms(usrId, "role")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
