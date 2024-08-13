@@ -1,5 +1,11 @@
 import { Response, NextFunction } from "express";
 
+import { EntitySetName } from "@/configs/global.config";
+import {
+  findPermissionTypesByEntity,
+  findPermissionTypesByEntities,
+} from "@/features/auth";
+import { Database } from "@/models";
 import { ClientError, ServerError } from "@/utils/error.util";
 
 /** The set of options for the {@link respondRepository} utility function(s). */
@@ -73,5 +79,86 @@ export const handleRepositoryError = (next: NextFunction) => {
     }
 
     next(error);
+  };
+};
+
+/**
+ * Finds the user's permissions for the given entity and adds it to the object.
+ *
+ * @param usrId The user's `usrId`
+ * @param set The name of the entity set
+ * @param idProp The name of the entity's ID property
+ * @returns The original repository data with the user's permissions included
+ */
+export const includeRepositoryPermsOnObj = <
+  E extends EntitySetName,
+  P extends keyof Database[E],
+  T extends Record<P, number> & Record<string, any>
+>(
+  usrId: number,
+  set: E,
+  idProp: P
+) => {
+  return async (data: T | undefined) => {
+    if (!data) {
+      return data;
+    }
+
+    // find entity permissions
+    const entity = data[idProp];
+    const permTypes = await findPermissionTypesByEntity(usrId, set, entity);
+
+    // include permission types
+    return { ...data, permissions: permTypes };
+  };
+};
+
+/**
+ * Finds the user's permissions for each of the given entities and adds it to
+ * each of the objects.
+ *
+ * @param usrId The user's `usrId`
+ * @param set The name of the entity set
+ * @param idProp The name of the entity's ID property
+ * @returns The original repository data with the user's permissions included
+ */
+export const includeRepositoryPermsOnArr = <
+  E extends EntitySetName,
+  P extends keyof Database[E],
+  T extends Record<P, number> & Record<string, any>
+>(
+  usrId: number,
+  set: E,
+  idProp: P
+) => {
+  return async (data: T[]) => {
+    if (!data.length) {
+      return data;
+    }
+
+    // find entities permissions
+    const entities = data.map((v) => v[idProp]);
+    const permsArr = await findPermissionTypesByEntities(usrId, set, entities);
+
+    // splice entity set permissions
+    let setPerms;
+    const idx = permsArr.findIndex((v) => v.perEntity === null);
+    if (idx !== -1) {
+      [setPerms] = permsArr.splice(idx, 1);
+    }
+
+    // convert the output array to object and
+    // union entity and entity set permissions
+    const permsObj: Record<number, string[]> = {};
+    for (const perEntity of entities) {
+      permsObj[perEntity] = setPerms?.types ?? [];
+    }
+    for (const { perEntity, types } of permsArr) {
+      const permTypes = types.concat(permsObj[perEntity!]);
+      permsObj[perEntity!] = Array.from(new Set(permTypes));
+    }
+
+    // include permission types for each object
+    return data.map((v) => ({ ...v, permissions: permsObj[v[idProp]] ?? [] }));
   };
 };

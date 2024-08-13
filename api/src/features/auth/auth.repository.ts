@@ -142,3 +142,94 @@ export const findAccessibleEntities = async (
 
   return (await query.executeTakeFirstOrThrow()).entities;
 };
+
+/**
+ * Returns an array of permission types the user has access to based on the
+ * given entity set and entity.
+ *
+ * @param usrId The user's `usrId`
+ * @param perSet The permission's `perSet`
+ * @param perEntity The permission's `perEntity`
+ * @returns An array of permission types a user has, given the set and entity
+ */
+export const findPermissionTypesByEntity = async (
+  usrId: number,
+  perSet: string,
+  perEntity: number
+) => {
+  const filters = { usrId, perSet };
+
+  const query = db
+    .selectFrom((eb) =>
+      rolePermissions(eb)
+        .where((eb) => eb.and(filters))
+        .where((eb) =>
+          eb.or([
+            // prettier-ignore
+            eb("perEntity", "is", null),
+            eb("perEntity", "=", perEntity),
+          ])
+        )
+        .select("perType")
+        .union((eb) =>
+          userPermissions(eb)
+            .where((eb) => eb.and(filters))
+            .where((eb) =>
+              eb.or([
+                eb("perEntity", "is", null),
+                eb("perEntity", "=", perEntity),
+              ])
+            )
+            .select("perType")
+        )
+        .as("union")
+    )
+    .select((eb) => jsonArrayFromExpr(eb.ref("perType")).as("types"));
+
+  return (await query.executeTakeFirstOrThrow()).types;
+};
+
+/**
+ * Returns an array of permission types for each entity the user has access to
+ * based on the given entity set and entities.
+ *
+ * @param usrId The user's `usrId`
+ * @param perSet The permission's `perSet`
+ * @param perEntities The permission's `perEntity`s
+ * @returns An array of permission types a user has, given the set and entities
+ */
+export const findPermissionTypesByEntities = (
+  usrId: number,
+  perSet: string,
+  perEntities: number[]
+) => {
+  const filters = { usrId, perSet };
+
+  const query = db
+    .selectFrom((eb) =>
+      rolePermissions(eb)
+        .where((eb) => eb.and(filters))
+        .where((eb) =>
+          eb.or([
+            eb("perEntity", "is", null),
+            eb("perEntity", "in", perEntities),
+          ])
+        )
+        .select(["perEntity", "perType"])
+        .union((eb) =>
+          userPermissions(eb)
+            .where((eb) => eb.and(filters))
+            .where((eb) =>
+              eb.or([
+                eb("perEntity", "is", null),
+                eb("perEntity", "in", perEntities),
+              ])
+            )
+            .select(["perEntity", "perType"])
+        )
+        .as("union")
+    )
+    .select((eb) => jsonArrayFromExpr(eb.ref("perType")).as("types"));
+
+  return query.select("perEntity").groupBy("perEntity").execute();
+};
