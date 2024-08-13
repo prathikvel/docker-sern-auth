@@ -6,10 +6,13 @@ import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
+  includeRepositoryPermsOnObj,
+  includeRepositoryPermsOnArr,
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
 import { createPermissible, deletePermissible } from "../permissible";
+import { generateEntityPermissions } from "../permission";
 import {
   findUserById,
   findUserByIdWithPassword,
@@ -19,6 +22,7 @@ import {
   updateUser,
   deleteUser,
 } from "./user.repository";
+import { createUserPermission } from "../user-permission";
 
 /**
  * Responds with the current user.
@@ -31,7 +35,19 @@ export const getCurrentUser: RequestHandler = (req, res) => {
  * Responds with all system users.
  */
 export const getUsers: RequestHandler = (req, res, next) => {
-  findUsers().then(respondRepository(res)).catch(handleRepositoryError(next));
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
+  findUsers()
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositoryPermsOnArr(usrId, "user", "usrId")(data);
+      }
+      return data;
+    })
+    .then(respondRepository(res))
+    .catch(handleRepositoryError(next));
 };
 
 /**
@@ -39,7 +55,17 @@ export const getUsers: RequestHandler = (req, res, next) => {
  */
 export const getUserById: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUserById(id)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositoryPermsOnObj(usrId, "user", "usrId")(data);
+      }
+      return data as any;
+    })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -49,7 +75,17 @@ export const getUserById: RequestHandler = (req, res, next) => {
  */
 export const getUsersByIds: RequestHandler = (req, res, next) => {
   const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  const { permissions } = req.query;
+  const hasPermissions = permissions === "true" || permissions === "1";
+
   findUsersByIds(ids)
+    .then((data) => {
+      if (hasPermissions) {
+        const { usrId } = req.user!;
+        return includeRepositoryPermsOnArr(usrId, "user", "usrId")(data);
+      }
+      return data;
+    })
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -64,6 +100,15 @@ export const addUser: RequestHandler = async (req, res, next) => {
 
   const { pblId: usrId } = await createPermissible();
   createUser({ usrId, ...req.body, usrPassword })
+    .then(async (data) => {
+      const permissions = await generateEntityPermissions("user", usrId);
+      for (const permission of permissions) {
+        if (permission) {
+          createUserPermission({ urpUsrId: usrId, urpPerId: permission.perId });
+        }
+      }
+      return data;
+    })
     .then(respondRepository(res, { status: 201 }))
     .catch(handleRepositoryError(next));
 };

@@ -1,5 +1,5 @@
 import express, { RequestHandler } from "express";
-import { checkExact, param, body } from "express-validator";
+import { checkExact, param, query, body } from "express-validator";
 
 import { AUTH, USER } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validation.middleware";
@@ -35,6 +35,10 @@ userRouter.get(
 userRouter.get(
   "/",
   handlers({
+    validation: [
+      checkExact(query("permissions").isBoolean().optional()),
+      handleValidation,
+    ],
     middleware: handleEntitySetAuthorization("user", "read"),
     controller: getUsers,
   })
@@ -44,7 +48,10 @@ userRouter.get(
   "/:id(\\d+)",
   handlers({
     validation: [
-      checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
+      checkExact([
+        param("id", USER.ERRORS.USR_ID).isInt(),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntityAuthorization("user", "read"),
@@ -56,11 +63,12 @@ userRouter.get(
   "/:ids([\\d,]+)",
   handlers({
     validation: [
-      checkExact(
+      checkExact([
         param("ids", USER.ERRORS.USR_ID).custom((value: string) => {
           return value.split(",").every((v) => v && !isNaN(Number(v)));
-        })
-      ),
+        }),
+        query("permissions").isBoolean().optional(),
+      ]),
       handleValidation,
     ],
     middleware: handleEntitiesAuthorization("user", "read"),
