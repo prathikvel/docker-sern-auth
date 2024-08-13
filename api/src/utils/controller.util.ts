@@ -113,7 +113,7 @@ export const includeRepositoryPerms = <
       const permTypes = await findPermissionTypesByEntity(usrId, set, entity);
 
       // include permission types
-      return { ...data, permissions: permTypes };
+      return { ...data, authorization: permTypes };
     }
 
     // ------------------------ DATA IS ARRAY -----------------------
@@ -141,7 +141,7 @@ export const includeRepositoryPerms = <
     }
 
     // include permission types for each object
-    return data.map((v) => ({ ...v, permissions: permsObj[v[idProp]] ?? [] }));
+    return data.map((v) => ({ ...v, authorization: permsObj[v[idProp]] }));
   };
 };
 
@@ -167,8 +167,8 @@ export const includeRepositorySetPerms = <T extends Record<string, any>>(
 
     // include permission types
     if (!Array.isArray(data)) {
-      return { ...data, permissions: permTypes };
+      return { ...data, authorization: permTypes };
     }
-    return data.map((v) => ({ ...v, permissions: permTypes }));
+    return data.map((v) => ({ ...v, authorization: permTypes }));
   };
 };
