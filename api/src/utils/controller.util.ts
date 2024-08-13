@@ -83,14 +83,15 @@ export const handleRepositoryError = (next: NextFunction) => {
 };
 
 /**
- * Finds the user's permissions for the given entity and adds it to the object.
+ * Finds the user's permissions for the entity or each of the entities and adds
+ * it to the object or each of the objects, respectively.
  *
  * @param usrId The user's `usrId`
  * @param set The name of the entity set
  * @param idProp The name of the entity's ID property
  * @returns The original repository data with the user's permissions included
  */
-export const includeRepositoryPermsOnObj = <
+export const includeRepositoryPerms = <
   E extends EntitySetName,
   P extends keyof Database[E],
   T extends Record<P, number> & Record<string, any>
@@ -99,42 +100,23 @@ export const includeRepositoryPermsOnObj = <
   set: E,
   idProp: P
 ) => {
-  return async (data: T | undefined) => {
-    if (!data) {
+  return async (data: T | T[] | undefined) => {
+    if (!data || (Array.isArray(data) && !data.length)) {
       return data;
     }
 
-    // find entity permissions
-    const entity = data[idProp];
-    const permTypes = await findPermissionTypesByEntity(usrId, set, entity);
+    // ----------------------- DATA IS OBJECT -----------------------
 
-    // include permission types
-    return { ...data, permissions: permTypes };
-  };
-};
+    if (!Array.isArray(data)) {
+      // find entity permissions
+      const entity = data[idProp];
+      const permTypes = await findPermissionTypesByEntity(usrId, set, entity);
 
-/**
- * Finds the user's permissions for each of the given entities and adds it to
- * each of the objects.
- *
- * @param usrId The user's `usrId`
- * @param set The name of the entity set
- * @param idProp The name of the entity's ID property
- * @returns The original repository data with the user's permissions included
- */
-export const includeRepositoryPermsOnArr = <
-  E extends EntitySetName,
-  P extends keyof Database[E],
-  T extends Record<P, number> & Record<string, any>
->(
-  usrId: number,
-  set: E,
-  idProp: P
-) => {
-  return async (data: T[]) => {
-    if (!data.length) {
-      return data;
+      // include permission types
+      return { ...data, permissions: permTypes };
     }
+
+    // ------------------------ DATA IS ARRAY -----------------------
 
     // find entities permissions
     const entities = data.map((v) => v[idProp]);
@@ -160,5 +142,33 @@ export const includeRepositoryPermsOnArr = <
 
     // include permission types for each object
     return data.map((v) => ({ ...v, permissions: permsObj[v[idProp]] ?? [] }));
+  };
+};
+
+/**
+ * Finds the user's entity-set permissions for the entity or each of the
+ * entities and adds it to the object or each of the objects, respectively.
+ *
+ * @param usrId The user's `usrId`
+ * @param set The name of the entity set
+ * @returns The original repository data with the user's permissions included
+ */
+export const includeRepositorySetPerms = <T extends Record<string, any>>(
+  usrId: number,
+  set: EntitySetName
+) => {
+  return async (data: T | T[] | undefined) => {
+    if (!data || (Array.isArray(data) && !data.length)) {
+      return data;
+    }
+
+    // find entity permissions
+    const permTypes = await findPermissionTypesByEntity(usrId, set, null);
+
+    // include permission types
+    if (!Array.isArray(data)) {
+      return { ...data, permissions: permTypes };
+    }
+    return data.map((v) => ({ ...v, permissions: permTypes }));
   };
 };

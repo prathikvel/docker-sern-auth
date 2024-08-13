@@ -6,8 +6,7 @@ import {
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
-  includeRepositoryPermsOnObj,
-  includeRepositoryPermsOnArr,
+  includeRepositoryPerms,
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
@@ -42,7 +41,7 @@ export const getUsers: RequestHandler = (req, res, next) => {
     .then((data) => {
       if (hasPermissions) {
         const { usrId } = req.user!;
-        return includeRepositoryPermsOnArr(usrId, "user", "usrId")(data);
+        return includeRepositoryPerms(usrId, "user", "usrId")(data);
       }
       return data;
     })
@@ -62,9 +61,9 @@ export const getUserById: RequestHandler = (req, res, next) => {
     .then((data) => {
       if (hasPermissions) {
         const { usrId } = req.user!;
-        return includeRepositoryPermsOnObj(usrId, "user", "usrId")(data);
+        return includeRepositoryPerms(usrId, "user", "usrId")(data);
       }
-      return data as any;
+      return data as Record<string, any>;
     })
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
@@ -82,7 +81,7 @@ export const getUsersByIds: RequestHandler = (req, res, next) => {
     .then((data) => {
       if (hasPermissions) {
         const { usrId } = req.user!;
-        return includeRepositoryPermsOnArr(usrId, "user", "usrId")(data);
+        return includeRepositoryPerms(usrId, "user", "usrId")(data);
       }
       return data;
     })

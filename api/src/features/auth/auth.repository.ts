@@ -155,7 +155,7 @@ export const findAccessibleEntities = async (
 export const findPermissionTypesByEntity = async (
   usrId: number,
   perSet: string,
-  perEntity: number
+  perEntity: number | null
 ) => {
   const filters = { usrId, perSet };
 
