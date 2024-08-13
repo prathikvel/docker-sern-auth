@@ -157,7 +157,7 @@ export const findPermissionTypesByEntity = async (
   perSet: string,
   perEntity: number | null
 ) => {
-  const filters = { usrId, perSet };
+  const filters = { usrId, perSet: convertCamelToSnake(perSet) };
 
   const query = db
     .selectFrom((eb) =>
@@ -203,7 +203,7 @@ export const findPermissionTypesByEntities = (
   perSet: string,
   perEntities: number[]
 ) => {
-  const filters = { usrId, perSet };
+  const filters = { usrId, perSet: convertCamelToSnake(perSet) };
 
   const query = db
     .selectFrom((eb) =>
