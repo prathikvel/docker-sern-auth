@@ -106,6 +106,7 @@ export const handleRepositoryError = (next: NextFunction) => {
  * Finds the user's entity permissions for the entity or each of the entities
  * and adds it to the object or each of the objects, respectively. Finds the
  * user's entity-set permissions for the entity set and adds it to the metadata.
+ * The permissions are only included if `req.query.permissions` is set to true.
  *
  * @param req The Express request object
  * @param set The name of the entity set
@@ -174,7 +175,8 @@ export const includeRepositoryAuth = <
 
 /**
  * Finds the user's entity-set permissions for the entity set and adds it to
- * the metadata.
+ * the metadata. The permissions are only included if `req.query.permissions`
+ * is set to true.
  *
  * @param req The Express request object
  * @param set The name of the entity set
