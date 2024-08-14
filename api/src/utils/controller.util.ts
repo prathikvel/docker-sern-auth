@@ -184,7 +184,7 @@ export const includeRepositorySetAuth = <T>(
   req: Request,
   set: EntitySetName
 ) => {
-  return async (response: ResponseObject<T>) => {
+  return async (response: ResponseObject<T>): Promise<ResponseObject<T>> => {
     const { usrId } = req.user!;
     const { permissions } = req.query;
     const { data, metadata } = response;
