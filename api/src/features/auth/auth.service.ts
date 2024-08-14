@@ -2,14 +2,8 @@ import bcrypt from "bcrypt";
 import { DoneCallback } from "passport";
 import { VerifyFunction } from "passport-local";
 
-import { findUserById, findUserByEmailWithPassword } from "../user";
-
-type SerializeUserFunction = (
-  user: Express.User,
-  done: (err: any, id?: number) => void
-) => void;
-
-type DeserializeUserFunction = (id: number, done: DoneCallback) => void;
+import { findUserAuthInfo } from "./auth.repository";
+import { findUserByEmailWithPassword } from "../user";
 
 /**
  * Verifies the given email and password. If the credentials are valid, it
@@ -37,9 +31,12 @@ export const verify: VerifyFunction = async (email, password, done) => {
       return done(null, false, { message: "Incorrect username or password." });
     }
 
+    // find user auth info
+    const authorization = await findUserAuthInfo(user.usrId);
+
     // return sanitized user
     delete user.usrPassword;
-    return done(null, user);
+    return done(null, { ...user, authorization });
   } catch (err) {
     return done(err);
   }
@@ -51,23 +48,17 @@ export const verify: VerifyFunction = async (email, password, done) => {
  * @param user The user to serialize
  * @param done Passport's done callback
  */
-export const serializeUser: SerializeUserFunction = (user, done) => {
-  process.nextTick(() => done(null, user.usrId));
+export const serializeUser = (user: Express.User, done: DoneCallback) => {
+  process.nextTick(() => done(null, user));
 };
 
 /**
  * Helps to deserialize user objects out of the session.
  *
- * @param id The user id to deserialize
+ * @param user The user to deserialize
  * @param done Passport's done callback
  * @returns Yields the result back to the strategy
  */
-export const deserializeUser: DeserializeUserFunction = async (id, done) => {
-  try {
-    const user = await findUserById(id);
-
-    return done(null, user);
-  } catch (err) {
-    return done(err);
-  }
+export const deserializeUser = (user: Express.User, done: DoneCallback) => {
+  process.nextTick(() => done(null, user));
 };

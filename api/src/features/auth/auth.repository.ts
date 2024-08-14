@@ -2,7 +2,11 @@ import { ExpressionBuilder, sql } from "kysely";
 
 import { db } from "@/configs/database.config";
 import { Database } from "@/models";
-import { jsonArrayFromExpr } from "@/utils/database.util";
+import {
+  ifNull,
+  jsonArrayFromExpr,
+  jsonObjectFromExpr,
+} from "@/utils/database.util";
 import { convertCamelToSnake } from "@/utils/string.util";
 
 /** The select query for role-based permissions. */
@@ -20,6 +24,45 @@ const userPermissions = (eb: ExpressionBuilder<Database, keyof Database>) => {
     .selectFrom("user")
     .innerJoin("userPermission", "urpUsrId", "usrId")
     .innerJoin("permission", "perId", "urpPerId");
+};
+
+/** The expression that evaluates `perEntity`'s type. */
+const entityType = (eb: ExpressionBuilder<Database, keyof Database>) => {
+  return ifNull(eb.ref("perEntity"), eb.val("entitySet"), eb.val("entity")).as(
+    "entityType"
+  );
+};
+
+/**
+ * Returns an object with the user's entity and entity-set permissions.
+ *
+ * @param usrId The user's `usrId`
+ * @returns An object with the user's entity and entity-set permissions
+ */
+export const findUserAuthInfo = async (usrId: number) => {
+  const query = db
+    .selectFrom((eb) => {
+      const innerQuery = eb
+        .selectFrom((eb) =>
+          rolePermissions(eb)
+            .where("usrId", "=", usrId)
+            .select((eb) => [entityType(eb), "perSet"])
+            .union((eb) =>
+              userPermissions(eb)
+                .where("usrId", "=", usrId)
+                .select((eb) => [entityType(eb), "perSet"])
+            )
+            .as("union")
+        )
+        .select((eb) => jsonArrayFromExpr(eb.ref("perSet")).as("sets"));
+
+      return innerQuery.select("entityType").groupBy("entityType").as("agg");
+    })
+    .select((eb) =>
+      jsonObjectFromExpr(eb.ref("entityType"), eb.ref("sets")).as("obj")
+    );
+
+  return (await query.executeTakeFirstOrThrow()).obj;
 };
 
 /**
