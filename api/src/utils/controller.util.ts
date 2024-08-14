@@ -1,18 +1,38 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { EntitySetName } from "@/configs/global.config";
-import {
-  findPermissionTypesByEntity,
-  findPermissionTypesByEntities,
-} from "@/features/auth";
+import { findPermissionTypesByEntity } from "@/features/auth";
 import { Database } from "@/models";
 import { ClientError, ServerError } from "@/utils/error.util";
+
+/** The repository function's resolved data. */
+type Data<T> = T | T[] | undefined;
+
+/** An object with the repository function's resolved data and metadata. */
+type ResponseObject<T> = { data: Data<T>; metadata: Record<string, any> };
+
+/** An array of a user's permission types for an entity or entity set. */
+type Authorization = { authorization?: string[] };
+
+/** The {@link ResponseObject} with its data including an authorization. */
+type ResponseObjectWithAuth<T> = Promise<ResponseObject<T & Authorization>>;
 
 /** The set of options for the {@link respondRepository} utility function(s). */
 interface ResponseOptions {
   /** The response's status code. */
   status?: number;
 }
+
+/**
+ * Transforms the data to a response object with data and metadata properties.
+ *
+ * @param data The repository function's resolved data
+ * @returns An object with data and metadata properties
+ */
+export const transformToResponse = <T>(data: Data<T>): ResponseObject<T> => ({
+  data,
+  metadata: {},
+});
 
 /**
  * Returns the standard callback to execute when a repository function's promise
@@ -27,8 +47,8 @@ export const respondRepository = <T>(
   res: Response,
   options?: ResponseOptions
 ) => {
-  return (data: T) => {
-    res.status(options?.status ?? 200).json({ data });
+  return (response: ResponseObject<T>) => {
+    res.status(options?.status ?? 200).json(response);
   };
 };
 
@@ -47,12 +67,12 @@ export const respondRepositoryOrThrow = <T>(
   res: Response,
   options?: ResponseOptions
 ) => {
-  return (data: T) => {
-    if (!data) {
+  return (response: ResponseObject<T>) => {
+    if (!response) {
       throw new ClientError(406, "Invalid ID");
     }
 
-    res.status(options?.status ?? 200).json({ data });
+    res.status(options?.status ?? 200).json(response);
   };
 };
 
@@ -83,92 +103,106 @@ export const handleRepositoryError = (next: NextFunction) => {
 };
 
 /**
- * Finds the user's permissions for the entity or each of the entities and adds
- * it to the object or each of the objects, respectively.
+ * Finds the user's entity permissions for the entity or each of the entities
+ * and adds it to the object or each of the objects, respectively. Finds the
+ * user's entity-set permissions for the entity set and adds it to the metadata.
  *
- * @param usrId The user's `usrId`
+ * @param req The Express request object
  * @param set The name of the entity set
- * @param idProp The name of the entity's ID property
- * @returns The original repository data with the user's permissions included
+ * @param id The name of the entity's ID property
+ * @returns The original repository response with the user's permissions added
  */
-export const includeRepositoryPerms = <
+export const includeRepositoryAuth = <
   E extends EntitySetName,
-  P extends keyof Database[E],
-  T extends Record<P, number> & Record<string, any>
+  K extends keyof Database[E],
+  T extends Record<K, number>
 >(
-  usrId: number,
+  req: Request,
   set: E,
-  idProp: P
+  id: K
 ) => {
-  return async (data: T | T[] | undefined) => {
-    if (!data || (Array.isArray(data) && !data.length)) {
-      return data;
+  return async (response: ResponseObject<T>): ResponseObjectWithAuth<T> => {
+    const { usrId } = req.user!;
+    const { permissions } = req.query;
+    const { data, metadata } = response;
+    const hasPermissions = permissions === "true" || permissions === "1";
+
+    if (!hasPermissions || !data || (Array.isArray(data) && !data.length)) {
+      return response;
     }
+
+    // ------------------- DATA IS OBJECT OR ARRAY ------------------
+
+    // find entity permissions
+    const entity = !Array.isArray(data) ? data[id] : data.map((v) => v[id]);
+    const permsArr = await findPermissionTypesByEntity(usrId, set, entity);
+
+    // splice entity set permissions
+    let entitySetPerms;
+    const idx = permsArr.findIndex((v) => v.perEntity === null);
+    if (idx !== -1) {
+      [entitySetPerms] = permsArr.splice(idx, 1);
+    }
+
+    // add entity set permissions to metadata
+    const entitySetAuth = entitySetPerms?.types ?? [];
+    const metadataWithAuth = { ...metadata, authorization: entitySetAuth };
 
     // ----------------------- DATA IS OBJECT -----------------------
 
     if (!Array.isArray(data)) {
-      // find entity permissions
-      const entity = data[idProp];
-      const permTypes = await findPermissionTypesByEntity(usrId, set, entity);
-
-      // include permission types
-      return { ...data, authorization: permTypes };
+      const [entityPerms] = permsArr;
+      const entityAuth = entityPerms?.types ?? [];
+      const dataWithAuth = { ...data, authorization: entityAuth };
+      return { data: dataWithAuth, metadata: metadataWithAuth };
     }
 
     // ------------------------ DATA IS ARRAY -----------------------
 
-    // find entities permissions
-    const entities = data.map((v) => v[idProp]);
-    const permsArr = await findPermissionTypesByEntities(usrId, set, entities);
-
-    // splice entity set permissions
-    let setPerms;
-    const idx = permsArr.findIndex((v) => v.perEntity === null);
-    if (idx !== -1) {
-      [setPerms] = permsArr.splice(idx, 1);
-    }
-
-    // convert the output array to object and
-    // union entity and entity set permissions
+    // convert the output array to object
     const permsObj: Record<number, string[]> = {};
-    for (const perEntity of entities) {
-      permsObj[perEntity] = setPerms?.types ?? [];
-    }
-    for (const { perEntity, types } of permsArr) {
-      const permTypes = types.concat(permsObj[perEntity!]);
-      permsObj[perEntity!] = Array.from(new Set(permTypes));
-    }
+    permsArr.forEach((v) => (permsObj[v.perEntity!] = v.types));
 
     // include permission types for each object
-    return data.map((v) => ({ ...v, authorization: permsObj[v[idProp]] }));
+    const dataWithAuth = data.map((v) => {
+      const entityAuth = permsObj[v[id]] ?? [];
+      return { ...v, authorization: entityAuth };
+    });
+    return { data: dataWithAuth, metadata: metadataWithAuth };
   };
 };
 
 /**
- * Finds the user's entity-set permissions for the entity or each of the
- * entities and adds it to the object or each of the objects, respectively.
+ * Finds the user's entity-set permissions for the entity set and adds it to
+ * the metadata.
  *
- * @param usrId The user's `usrId`
+ * @param req The Express request object
  * @param set The name of the entity set
- * @returns The original repository data with the user's permissions included
+ * @returns The original repository response with the user's permissions added
  */
-export const includeRepositorySetPerms = <T extends Record<string, any>>(
-  usrId: number,
+export const includeRepositorySetAuth = <T>(
+  req: Request,
   set: EntitySetName
 ) => {
-  return async (data: T | T[] | undefined) => {
-    if (!data || (Array.isArray(data) && !data.length)) {
-      return data;
+  return async (response: ResponseObject<T>) => {
+    const { usrId } = req.user!;
+    const { permissions } = req.query;
+    const { data, metadata } = response;
+    const hasPermissions = permissions === "true" || permissions === "1";
+
+    if (!hasPermissions || !data || (Array.isArray(data) && !data.length)) {
+      return response;
     }
+
+    // ------------------- DATA IS OBJECT OR ARRAY ------------------
 
     // find entity permissions
-    const permTypes = await findPermissionTypesByEntity(usrId, set, null);
+    const permsArr = await findPermissionTypesByEntity(usrId, set, null);
 
-    // include permission types
-    if (!Array.isArray(data)) {
-      return { ...data, authorization: permTypes };
-    }
-    return data.map((v) => ({ ...v, authorization: permTypes }));
+    // add entity set permissions to metadata
+    const [entitySetPerms] = permsArr;
+    const entitySetAuth = entitySetPerms?.types ?? [];
+    const metadataWithAuth = { ...metadata, authorization: entitySetAuth };
+    return { data, metadata: metadataWithAuth };
   };
 };

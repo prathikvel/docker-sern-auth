@@ -187,66 +187,21 @@ export const findAccessibleEntities = async (
 };
 
 /**
- * Returns an array of permission types the user has access to based on the
- * given entity set and entity.
+ * Returns an array of permission types for each entity or entity set the user
+ * has access to based on the given entity set and entity/entities.
  *
  * @param usrId The user's `usrId`
  * @param perSet The permission's `perSet`
- * @param perEntity The permission's `perEntity`
- * @returns An array of permission types a user has, given the set and entity
+ * @param perEntity The permission's `perEntity`(s)
+ * @returns An array of permission types a user has, given the set and entity(s)
  */
-export const findPermissionTypesByEntity = async (
+export const findPermissionTypesByEntity = (
   usrId: number,
   perSet: string,
-  perEntity: number | null
+  perEntity: number | null | number[]
 ) => {
   const filters = { usrId, perSet: convertCamelToSnake(perSet) };
-
-  const query = db
-    .selectFrom((eb) =>
-      rolePermissions(eb)
-        .where((eb) => eb.and(filters))
-        .where((eb) =>
-          eb.or([
-            // prettier-ignore
-            eb("perEntity", "is", null),
-            eb("perEntity", "=", perEntity),
-          ])
-        )
-        .select("perType")
-        .union((eb) =>
-          userPermissions(eb)
-            .where((eb) => eb.and(filters))
-            .where((eb) =>
-              eb.or([
-                eb("perEntity", "is", null),
-                eb("perEntity", "=", perEntity),
-              ])
-            )
-            .select("perType")
-        )
-        .as("union")
-    )
-    .select((eb) => jsonArrayFromExpr(eb.ref("perType")).as("types"));
-
-  return (await query.executeTakeFirstOrThrow()).types;
-};
-
-/**
- * Returns an array of permission types for each entity the user has access to
- * based on the given entity set and entities.
- *
- * @param usrId The user's `usrId`
- * @param perSet The permission's `perSet`
- * @param perEntities The permission's `perEntity`s
- * @returns An array of permission types a user has, given the set and entities
- */
-export const findPermissionTypesByEntities = (
-  usrId: number,
-  perSet: string,
-  perEntities: number[]
-) => {
-  const filters = { usrId, perSet: convertCamelToSnake(perSet) };
+  const perEntityOp = !Array.isArray(perEntity) ? "=" : "in";
 
   const query = db
     .selectFrom((eb) =>
@@ -255,7 +210,7 @@ export const findPermissionTypesByEntities = (
         .where((eb) =>
           eb.or([
             eb("perEntity", "is", null),
-            eb("perEntity", "in", perEntities),
+            eb("perEntity", perEntityOp, perEntity),
           ])
         )
         .select(["perEntity", "perType"])
@@ -265,7 +220,7 @@ export const findPermissionTypesByEntities = (
             .where((eb) =>
               eb.or([
                 eb("perEntity", "is", null),
-                eb("perEntity", "in", perEntities),
+                eb("perEntity", perEntityOp, perEntity),
               ])
             )
             .select(["perEntity", "perType"])

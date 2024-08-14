@@ -1,10 +1,11 @@
 import { RequestHandler } from "express";
 
 import {
+  transformToResponse,
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
-  includeRepositorySetPerms,
+  includeRepositorySetAuth,
 } from "@/utils/controller.util";
 
 import {
@@ -21,17 +22,9 @@ import {
  */
 export const getRolePermissionByRolId: RequestHandler = (req, res, next) => {
   const rlpRolId = Number(req.params.rlpRolId);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findRolePermissionByRolId(rlpRolId)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositorySetPerms(usrId, "rolePermission")(data);
-      }
-      return data as Record<string, any>;
-    })
+    .then(transformToResponse)
+    .then(includeRepositorySetAuth(req, "rolePermission"))
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -41,17 +34,9 @@ export const getRolePermissionByRolId: RequestHandler = (req, res, next) => {
  */
 export const getRolePermissionsByRolIds: RequestHandler = (req, res, next) => {
   const rlpRolIds = req.params.rlpRolIds.split(",").filter(Boolean).map(Number);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findRolePermissionsByRolIds(rlpRolIds)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositorySetPerms(usrId, "rolePermission")(data);
-      }
-      return data;
-    })
+    .then(transformToResponse)
+    .then(includeRepositorySetAuth(req, "rolePermission"))
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -61,17 +46,9 @@ export const getRolePermissionsByRolIds: RequestHandler = (req, res, next) => {
  */
 export const getRolePermissionByPerId: RequestHandler = (req, res, next) => {
   const rlpPerId = Number(req.params.rlpPerId);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findRolePermissionByPerId(rlpPerId)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositorySetPerms(usrId, "rolePermission")(data);
-      }
-      return data as Record<string, any>;
-    })
+    .then(transformToResponse)
+    .then(includeRepositorySetAuth(req, "rolePermission"))
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -81,17 +58,9 @@ export const getRolePermissionByPerId: RequestHandler = (req, res, next) => {
  */
 export const getRolePermissionsByPerIds: RequestHandler = (req, res, next) => {
   const rlpPerIds = req.params.rlpPerIds.split(",").filter(Boolean).map(Number);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findRolePermissionsByPerIds(rlpPerIds)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositorySetPerms(usrId, "rolePermission")(data);
-      }
-      return data;
-    })
+    .then(transformToResponse)
+    .then(includeRepositorySetAuth(req, "rolePermission"))
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -102,6 +71,7 @@ export const getRolePermissionsByPerIds: RequestHandler = (req, res, next) => {
  */
 export const addRolePermission: RequestHandler = (req, res, next) => {
   createRolePermission(req.body)
+    .then(transformToResponse)
     .then(respondRepository(res, { status: 201 }))
     .catch(handleRepositoryError(next));
 };
@@ -113,6 +83,7 @@ export const addRolePermission: RequestHandler = (req, res, next) => {
 export const removeRolePermission: RequestHandler = (req, res, next) => {
   const { rlpRolId, rlpPerId } = req.params;
   deleteRolePermission(Number(rlpRolId), Number(rlpPerId))
+    .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };

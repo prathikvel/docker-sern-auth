@@ -3,10 +3,11 @@ import { RequestHandler } from "express";
 
 import { AUTH, USER } from "@/configs/global.config";
 import {
+  transformToResponse,
   respondRepository,
   respondRepositoryOrThrow,
   handleRepositoryError,
-  includeRepositoryPerms,
+  includeRepositoryAuth,
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
@@ -34,17 +35,9 @@ export const getCurrentUser: RequestHandler = (req, res) => {
  * Responds with all system users.
  */
 export const getUsers: RequestHandler = (req, res, next) => {
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findUsers()
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositoryPerms(usrId, "user", "usrId")(data);
-      }
-      return data;
-    })
+    .then(transformToResponse)
+    .then(includeRepositoryAuth(req, "user", "usrId"))
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -54,17 +47,9 @@ export const getUsers: RequestHandler = (req, res, next) => {
  */
 export const getUserById: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findUserById(id)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositoryPerms(usrId, "user", "usrId")(data);
-      }
-      return data as Record<string, any>;
-    })
+    .then(transformToResponse)
+    .then(includeRepositoryAuth(req, "user", "usrId"))
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -74,17 +59,9 @@ export const getUserById: RequestHandler = (req, res, next) => {
  */
 export const getUsersByIds: RequestHandler = (req, res, next) => {
   const ids = req.params.ids.split(",").filter(Boolean).map(Number);
-  const { permissions } = req.query;
-  const hasPermissions = permissions === "true" || permissions === "1";
-
   findUsersByIds(ids)
-    .then((data) => {
-      if (hasPermissions) {
-        const { usrId } = req.user!;
-        return includeRepositoryPerms(usrId, "user", "usrId")(data);
-      }
-      return data;
-    })
+    .then(transformToResponse)
+    .then(includeRepositoryAuth(req, "user", "usrId"))
     .then(respondRepository(res))
     .catch(handleRepositoryError(next));
 };
@@ -99,14 +76,15 @@ export const addUser: RequestHandler = async (req, res, next) => {
 
   const { pblId: usrId } = await createPermissible();
   createUser({ usrId, ...req.body, usrPassword })
-    .then(async (data) => {
+    .then(transformToResponse)
+    .then(async (response) => {
       const permissions = await generateEntityPermissions("user", usrId);
       for (const permission of permissions) {
         if (permission) {
           createUserPermission({ urpUsrId: usrId, urpPerId: permission.perId });
         }
       }
-      return data;
+      return response;
     })
     .then(respondRepository(res, { status: 201 }))
     .catch(handleRepositoryError(next));
@@ -119,6 +97,7 @@ export const addUser: RequestHandler = async (req, res, next) => {
 export const editUser: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
   updateUser(id, req.body)
+    .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -146,6 +125,7 @@ export const editUserPassword: RequestHandler = async (req, res, next) => {
   // update new password
   const usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
   updateUser(id, { usrPassword })
+    .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
 };
@@ -157,6 +137,7 @@ export const editUserPassword: RequestHandler = async (req, res, next) => {
 export const removeUser: RequestHandler = (req, res, next) => {
   const id = Number(req.params.id);
   deleteUser(id)
+    .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .then(() => deletePermissible(id))
     .catch(handleRepositoryError(next));
