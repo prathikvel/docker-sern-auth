@@ -92,6 +92,18 @@ export const findPermissions = async (criteria: Partial<Permission> = {}) => {
 };
 
 /**
+ * Returns an array of permissions that have the given `id`s.
+ *
+ * @param ids An array of `perId`s
+ * @returns An array of permissions that have the given `id`s
+ */
+export const findPermissionsByIds = (ids: number[]) => {
+  const query = db.selectFrom("permission").where("perId", "in", ids);
+
+  return query.selectAll().execute();
+};
+
+/**
  * Inserts a new permission in the database and returns the newly created
  * permission with {@link findPermissionById}. Throws a NoResultError if the
  * permission couldn't be created.

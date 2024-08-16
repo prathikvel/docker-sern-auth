@@ -34,6 +34,9 @@ export type EntitySetName = (typeof ENTITY_SET.NAMES)[number];
 // --------------------------- PERMISSION ---------------------------
 
 export const PERMISSION = {
+  ERRORS: {
+    PER_ID: "Please enter an integer",
+  },
   TYPE: {
     NAMES: ["create", "read", "update", "delete", "share"] as const,
   },

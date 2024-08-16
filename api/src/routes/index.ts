@@ -1,6 +1,7 @@
 import express from "express";
 
 import { authRouter, handleAuthentication } from "@/features/auth";
+import { permissionRouter } from "@/features/permission";
 import { roleRouter } from "@/features/role";
 import { rolePermissionRouter } from "@/features/role-permission";
 import { userRouter } from "@/features/user";
@@ -16,6 +17,7 @@ router.use(handleAuthentication);
 router.use("/users", userRouter);
 router.use("/roles", roleRouter);
 router.use("/user-roles", userRoleRouter);
+router.use("/permissions", permissionRouter);
 router.use("/role-permissions", rolePermissionRouter);
 router.use("/user-permissions", userPermissionRouter);
 
