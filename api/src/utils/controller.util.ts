@@ -29,10 +29,15 @@ interface ResponseOptions {
  * @param data The repository function's resolved data
  * @returns An object with data and metadata properties
  */
-export const transformToResponse = <T>(data: Data<T>): ResponseObject<T> => ({
-  data,
-  metadata: {},
-});
+export const transformToResponse = <T>(data: Data<T>): ResponseObject<T> => {
+  if (data && !Array.isArray(data)) {
+    if (["data", "metadata"].every((v) => Object.hasOwn(data, v))) {
+      return data as unknown as ResponseObject<T>;
+    }
+  }
+
+  return { data, metadata: {} };
+};
 
 /**
  * Returns the standard callback to execute when a repository function's promise
