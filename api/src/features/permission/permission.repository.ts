@@ -1,6 +1,13 @@
 import { db } from "@/configs/database.config";
+import { ResponseObject } from "@/utils/controller.util";
 import { pick } from "@/utils/object.util";
-import { convertPropForDb, convertPropForJs } from "@/utils/repository.util";
+import {
+  FindManyOptions,
+  convertPropForDb,
+  convertPropForJs,
+  getPaginateVars,
+  getPaginateMetadataAndSort,
+} from "@/utils/repository.util";
 import { convertCamelToSnake } from "@/utils/string.util";
 
 import {
@@ -92,15 +99,67 @@ export const findPermissions = async (criteria: Partial<Permission> = {}) => {
 };
 
 /**
+ * Returns an array of sorted and paginated permissions that match the given
+ * criteria. Returns the first 25 permissions sorted by ID if no criteria or
+ * options are provided. All the criteria will be compared via equality. The
+ * sorting and pagination can be configured via options.
+ *
+ * @param criteria An object of permission fields to match with
+ * @param options A set of options related to sorting and pagination
+ * @returns An array of sorted and paginated permissions that match the criteria
+ */
+export const findOrganizedPermissions = async (
+  criteria: Partial<Permission> = {},
+  options?: FindManyOptions<Permission>
+): Promise<ResponseObject<Permission>> => {
+  // -------------------------- BASE QUERY --------------------------
+
+  let entity: Permission["perEntity"] | undefined;
+  ({ perEntity: entity, ...criteria } = convertPropForDb(criteria, "perSet"));
+
+  let query = db
+    .selectFrom("permission")
+    .where((eb) => eb.and(pick(criteria, columns)));
+
+  if (entity) {
+    query = query.where("perEntity", entity === null ? "is" : "=", entity);
+  }
+
+  // ------------------------- SORT/PAGINATE ------------------------
+
+  const {
+    sort = "perId",
+    order = "asc",
+    page,
+    cursor,
+    limit = 25,
+  } = options ?? {};
+  const params = { id: "perId", sort, order, page, cursor, limit } as const;
+
+  if (!page || !cursor) {
+    query = query.orderBy([`${sort} ${order}`, "perId"]);
+  } else {
+    const { orderBys, cursorFilter } = getPaginateVars("permission", params);
+    query = query.where(cursorFilter).orderBy(orderBys);
+  }
+
+  // prettier-ignore
+  const permissions = await query.selectAll().limit(limit + 1).execute();
+  const data = permissions.map((v) => convertPropForJs(v, "perSet")!);
+  return { data, metadata: getPaginateMetadataAndSort(data, params) };
+};
+
+/**
  * Returns an array of permissions that have the given `id`s.
  *
  * @param ids An array of `perId`s
  * @returns An array of permissions that have the given `id`s
  */
-export const findPermissionsByIds = (ids: number[]) => {
+export const findPermissionsByIds = async (ids: number[]) => {
   const query = db.selectFrom("permission").where("perId", "in", ids);
 
-  return query.selectAll().execute();
+  const permissions = await query.selectAll().execute();
+  return permissions.map((v) => convertPropForJs(v, "perSet"));
 };
 
 /**

@@ -4,12 +4,13 @@ import { EntitySetName } from "@/configs/global.config";
 import { findPermissionTypesByEntity } from "@/features/auth";
 import { Database } from "@/models";
 import { ClientError, ServerError } from "@/utils/error.util";
+import { CustomRecord } from "@/utils/types.util";
 
 /** The repository function's resolved data. */
 type Data<T> = T | T[] | undefined;
 
 /** An object with the repository function's resolved data and metadata. */
-type ResponseObject<T> = { data: Data<T>; metadata: Record<string, any> };
+export type ResponseObject<T> = { data: Data<T>; metadata: CustomRecord };
 
 /** An array of a user's permission types for an entity or entity set. */
 type Authorization = { authorization?: string[] };
@@ -29,14 +30,14 @@ interface ResponseOptions {
  * @param data The repository function's resolved data
  * @returns An object with data and metadata properties
  */
-export const transformToResponse = <T>(data: Data<T>): ResponseObject<T> => {
-  if (data && !Array.isArray(data)) {
+export const transformToResponse = <T>(data: Data<T> | ResponseObject<T>) => {
+  if (data !== null && typeof data === "object" && !Array.isArray(data)) {
     if (["data", "metadata"].every((v) => Object.hasOwn(data, v))) {
       return data as unknown as ResponseObject<T>;
     }
   }
 
-  return { data, metadata: {} };
+  return { data, metadata: {} } as ResponseObject<T>;
 };
 
 /**
