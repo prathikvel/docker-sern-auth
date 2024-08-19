@@ -2,7 +2,7 @@ import express from "express";
 import { checkExact, param, query } from "express-validator";
 
 import { PERMISSION } from "@/configs/global.config";
-import { handleValidation } from "@/middlewares/validation.middleware";
+import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
 
 import { handleEntitySetAuthorization } from "../auth";

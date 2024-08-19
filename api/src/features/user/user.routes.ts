@@ -2,7 +2,7 @@ import express, { RequestHandler } from "express";
 import { checkExact, param, query, body } from "express-validator";
 
 import { AUTH, USER } from "@/configs/global.config";
-import { handleValidation } from "@/middlewares/validation.middleware";
+import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
 
 import {
