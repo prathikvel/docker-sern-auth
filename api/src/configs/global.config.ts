@@ -3,7 +3,9 @@ import type { Database } from "@/models";
 // ----------------------------- ERRORS -----------------------------
 
 export const ERRORS = {
-  500: "Internal Server Error",
+  ID: "Please enter a number",
+  IDS: "Please enter comma-separated numbers",
+  PERMISSIONS: 'Please enter "true" or "false"',
 };
 
 // ------------------------------ AUTH ------------------------------
@@ -66,12 +68,12 @@ export const ROLE_PERMISSION = {
 
 export const USER = {
   ERRORS: {
-    USR_ID: "Please enter an integer",
-    USR_NAME: "Please enter a string that only contains letters",
+    USR_NAME: "Please enter a name that only contains letters",
     USR_EMAIL: "Please enter a valid email address",
-    USR_PASSWORD: "Please enter a string of at least 12 characters",
-    OLD_USR_PASSWORD: "Please enter a non-empty string",
-    NEW_USR_PASSWORD: "Please enter a string of at least 12 characters",
+    USR_PASSWORD:
+      "Please enter a password that is at least" +
+      ` ${AUTH.PWD_MIN_LENGTH} characters long`,
+    CURR_USR_PASSWORD: "Please enter a password",
     INVALID_CREDENTIALS: "Invalid user ID and/or password",
   },
 };

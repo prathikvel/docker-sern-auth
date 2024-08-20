@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import { AUTH, USER } from "@/configs/global.config";
 import {
@@ -46,7 +47,7 @@ export const getUsers: RequestHandler = (req, res, next) => {
  * Responds with a user with the given `id` parameter.
  */
 export const getUserById: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   findUserById(id)
     .then(transformToResponse)
     .then(includeRepositoryAuth(req, "user", "usrId"))
@@ -58,7 +59,7 @@ export const getUserById: RequestHandler = (req, res, next) => {
  * Responds with users with the given `ids` parameter.
  */
 export const getUsersByIds: RequestHandler = (req, res, next) => {
-  const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  const { ids } = matchedData(req, { locations: ["params"] });
   findUsersByIds(ids)
     .then(transformToResponse)
     .then(includeRepositoryAuth(req, "user", "usrId"))
@@ -95,7 +96,7 @@ export const addUser: RequestHandler = async (req, res, next) => {
  * Edits all properties except `usrPassword`. Responds with the edited user.
  */
 export const editUser: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   updateUser(id, req.body)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
@@ -107,8 +108,8 @@ export const editUser: RequestHandler = (req, res, next) => {
  * edited user, which doesn't include the previous or current `usrPassword`.
  */
 export const editUserPassword: RequestHandler = async (req, res, next) => {
-  const id = Number(req.params.id);
-  const { oldUsrPassword, newUsrPassword } = req.body;
+  const { id } = matchedData(req, { locations: ["params"] });
+  let { usrPassword, newUsrPassword } = req.body;
 
   // find given user
   const user = await findUserByIdWithPassword(id);
@@ -117,13 +118,13 @@ export const editUserPassword: RequestHandler = async (req, res, next) => {
   }
 
   // if password matches
-  const match = await bcrypt.compare(oldUsrPassword, user.usrPassword!);
+  const match = await bcrypt.compare(usrPassword, user.usrPassword!);
   if (!match) {
     return next(new ClientError(406, USER.ERRORS.INVALID_CREDENTIALS));
   }
 
   // update new password
-  const usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
+  usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
   updateUser(id, { usrPassword })
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
@@ -135,7 +136,7 @@ export const editUserPassword: RequestHandler = async (req, res, next) => {
  * user.
  */
 export const removeUser: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   deleteUser(id)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))

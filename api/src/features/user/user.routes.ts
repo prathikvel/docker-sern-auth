@@ -1,9 +1,13 @@
 import express, { RequestHandler } from "express";
-import { checkExact, param, query, body } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { AUTH, USER } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import {
+  isValidId,
+  isValidIds,
+  isValidPermissions,
+} from "@/utils/validator.util";
 
 import {
   handleEntityAuthorization,
@@ -20,6 +24,11 @@ import {
   editUserPassword,
   removeUser,
 } from "./user.controller";
+import {
+  isValidAddUser,
+  isValidEditUser,
+  isValidEditPassword,
+} from "./user.validator";
 
 export const userRouter = express.Router();
 
@@ -35,23 +44,17 @@ userRouter.get(
 userRouter.get(
   "/",
   handlers({
-    validation: [
-      checkExact(query("permissions").isBoolean().optional()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidPermissions)), handleValidation],
     middleware: handleEntitySetAuthorization("user", "read"),
     controller: getUsers,
   })
 );
 
 userRouter.get(
-  "/:id(\\d+)",
+  "/:id",
   handlers({
     validation: [
-      checkExact([
-        param("id", USER.ERRORS.USR_ID).isInt(),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntityAuthorization("user", "read"),
@@ -60,15 +63,10 @@ userRouter.get(
 );
 
 userRouter.get(
-  "/:ids([\\d,]+)",
+  "/:ids([\\w,]+)",
   handlers({
     validation: [
-      checkExact([
-        param("ids", USER.ERRORS.USR_ID).custom((value: string) => {
-          return value.split(",").every((v) => v && !isNaN(Number(v)));
-        }),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidIds), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntitiesAuthorization("user", "read"),
@@ -81,16 +79,7 @@ userRouter.get(
 userRouter.post(
   "/",
   handlers({
-    validation: [
-      checkExact([
-        body("usrName", USER.ERRORS.USR_NAME).isAlpha(),
-        body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail(),
-        body("usrPassword", USER.ERRORS.USR_PASSWORD).isLength({
-          min: AUTH.PWD_MIN_LENGTH,
-        }),
-      ]),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidAddUser)), handleValidation],
     middleware: handleEntitySetAuthorization("user", "create"),
     controller: addUser,
   })
@@ -99,21 +88,17 @@ userRouter.post(
 // ------------------------------- PUT ------------------------------
 
 userRouter.put(
-  "/:id(\\d+)",
+  "/:id",
   <RequestHandler>((req, res, next) => {
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
     };
-    return hasOwn("oldUsrPassword", "newUsrPassword") ? next("route") : next();
+    return hasOwn("usrPassword", "newUsrPassword") ? next("route") : next();
   }),
 
   handlers({
     validation: [
-      checkExact([
-        param("id", USER.ERRORS.USR_ID).isInt(),
-        body("usrName", USER.ERRORS.USR_NAME).isAlpha().optional(),
-        body("usrEmail", USER.ERRORS.USR_EMAIL).isEmail().optional(),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidEditUser)]),
       handleValidation,
     ],
     middleware: handleEntityAuthorization("user", "update"),
@@ -122,16 +107,10 @@ userRouter.put(
 );
 
 userRouter.put(
-  "/:id(\\d+)",
+  "/:id",
   handlers({
     validation: [
-      checkExact([
-        param("id", USER.ERRORS.USR_ID).isInt(),
-        body("oldUsrPassword", USER.ERRORS.OLD_USR_PASSWORD).notEmpty(),
-        body("newUsrPassword", USER.ERRORS.NEW_USR_PASSWORD).isLength({
-          min: AUTH.PWD_MIN_LENGTH,
-        }),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidEditPassword)]),
       handleValidation,
     ],
     middleware: handleEntityAuthorization("user", "update"),
@@ -142,12 +121,9 @@ userRouter.put(
 // ----------------------------- DELETE -----------------------------
 
 userRouter.delete(
-  "/:id(\\d+)",
+  "/:id",
   handlers({
-    validation: [
-      checkExact(param("id", USER.ERRORS.USR_ID).isInt()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidId)), handleValidation],
     middleware: handleEntityAuthorization("user", "delete"),
     controller: removeUser,
   })
