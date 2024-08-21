@@ -51,7 +51,7 @@ userRouter.get(
 );
 
 userRouter.get(
-  "/:id",
+  "/:id(\\w+)",
   handlers({
     validation: [
       checkExact([checkSchema(isValidId), checkSchema(isValidPermissions)]),
