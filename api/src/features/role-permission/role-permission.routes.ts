@@ -1,9 +1,9 @@
 import express from "express";
-import { checkExact, param, query, body } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { ROLE_PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import { isValidPermissions } from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -14,18 +14,25 @@ import {
   addRolePermission,
   removeRolePermission,
 } from "./role-permission.controller";
+import {
+  isValidRlpRolId,
+  isValidRlpRolIds,
+  isValidRlpPerId,
+  isValidRlpPerIds,
+  isValidAddRolePermission,
+} from "./role-permission.validator";
 
 export const rolePermissionRouter = express.Router();
 
 // ------------------------------- GET ------------------------------
 
 rolePermissionRouter.get(
-  "/roles/:rlpRolId(\\d+)",
+  "/roles/:rlpRolId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidRlpRolId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -35,16 +42,12 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/roles/:rlpRolIds([\\d,]+)",
+  "/roles/:rlpRolIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("rlpRolIds", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidRlpRolIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -54,12 +57,12 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/permissions/:rlpPerId(\\d+)",
+  "/permissions/:rlpPerId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidRlpPerId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -69,16 +72,12 @@ rolePermissionRouter.get(
 );
 
 rolePermissionRouter.get(
-  "/permissions/:rlpPerIds([\\d,]+)",
+  "/permissions/:rlpPerIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("rlpPerIds", ROLE_PERMISSION.ERRORS.RLP_PER_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidRlpPerIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -93,10 +92,7 @@ rolePermissionRouter.post(
   "/",
   handlers({
     validation: [
-      checkExact([
-        body("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt(),
-        body("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt(),
-      ]),
+      checkExact(checkSchema(isValidAddRolePermission)),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("rolePermission", "create"),
@@ -107,13 +103,10 @@ rolePermissionRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 rolePermissionRouter.delete(
-  "/roles/:rlpRolId(\\d+)/permissions/:rlpPerId(\\d+)",
+  "/roles/:rlpRolId/permissions/:rlpPerId",
   handlers({
     validation: [
-      checkExact([
-        param("rlpRolId", ROLE_PERMISSION.ERRORS.RLP_ROL_ID).isInt(),
-        param("rlpPerId", ROLE_PERMISSION.ERRORS.RLP_PER_ID).isInt(),
-      ]),
+      checkExact([checkSchema(isValidRlpRolId), checkSchema(isValidRlpPerId)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("rolePermission", "delete"),

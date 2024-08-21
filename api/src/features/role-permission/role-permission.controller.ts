@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import {
   transformToResponse,
@@ -21,7 +22,7 @@ import {
  * Responds with a rolePermission with the given `rlpRolId` parameter.
  */
 export const getRolePermissionByRolId: RequestHandler = (req, res, next) => {
-  const rlpRolId = Number(req.params.rlpRolId);
+  const { rlpRolId } = matchedData(req, { locations: ["params"] });
   findRolePermissionByRolId(rlpRolId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "rolePermission"))
@@ -33,7 +34,7 @@ export const getRolePermissionByRolId: RequestHandler = (req, res, next) => {
  * Responds with rolePermissions with the given `rlpRolIds` parameter.
  */
 export const getRolePermissionsByRolIds: RequestHandler = (req, res, next) => {
-  const rlpRolIds = req.params.rlpRolIds.split(",").filter(Boolean).map(Number);
+  const { rlpRolIds } = matchedData(req, { locations: ["params"] });
   findRolePermissionsByRolIds(rlpRolIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "rolePermission"))
@@ -45,7 +46,7 @@ export const getRolePermissionsByRolIds: RequestHandler = (req, res, next) => {
  * Responds with a rolePermission with the given `rlpPerId` parameter.
  */
 export const getRolePermissionByPerId: RequestHandler = (req, res, next) => {
-  const rlpPerId = Number(req.params.rlpPerId);
+  const { rlpPerId } = matchedData(req, { locations: ["params"] });
   findRolePermissionByPerId(rlpPerId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "rolePermission"))
@@ -57,7 +58,7 @@ export const getRolePermissionByPerId: RequestHandler = (req, res, next) => {
  * Responds with rolePermissions with the given `rlpPerIds` parameter.
  */
 export const getRolePermissionsByPerIds: RequestHandler = (req, res, next) => {
-  const rlpPerIds = req.params.rlpPerIds.split(",").filter(Boolean).map(Number);
+  const { rlpPerIds } = matchedData(req, { locations: ["params"] });
   findRolePermissionsByPerIds(rlpPerIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "rolePermission"))
@@ -81,8 +82,8 @@ export const addRolePermission: RequestHandler = (req, res, next) => {
  * the deleted rolePermission.
  */
 export const removeRolePermission: RequestHandler = (req, res, next) => {
-  const { rlpRolId, rlpPerId } = req.params;
-  deleteRolePermission(Number(rlpRolId), Number(rlpPerId))
+  const { rlpRolId, rlpPerId } = matchedData(req, { locations: ["params"] });
+  deleteRolePermission(rlpRolId, rlpPerId)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));

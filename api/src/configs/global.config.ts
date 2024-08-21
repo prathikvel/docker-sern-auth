@@ -54,15 +54,6 @@ export const ROLE = {
   },
 };
 
-// ------------------------- ROLE-PERMISSION ------------------------
-
-export const ROLE_PERMISSION = {
-  ERRORS: {
-    RLP_ROL_ID: "Please enter an integer",
-    RLP_PER_ID: "Please enter an integer",
-  },
-};
-
 // ------------------------------ USER ------------------------------
 
 export const USER = {
