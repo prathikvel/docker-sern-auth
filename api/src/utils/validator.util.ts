@@ -27,11 +27,11 @@ export const isValidIds = {
   },
 } satisfies Schema;
 
-/** The validation schema to get a user's permissions for an entity. Sanitizes
- * the parameter to a boolean. */
-export const isValidPermissions = {
-  permissions: {
-    errorMessage: ERRORS.PERMISSIONS,
+/** The validation schema for whether to include the user's authorization for an
+ * entity. Sanitizes the parameter to a boolean. */
+export const isValidAuthorization = {
+  authorization: {
+    errorMessage: ERRORS.AUTHORIZATION,
     isBoolean: true,
     toBoolean: true,
     optional: true,

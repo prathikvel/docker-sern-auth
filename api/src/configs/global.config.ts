@@ -5,7 +5,7 @@ import type { Database } from "@/models";
 export const ERRORS = {
   ID: "Please enter a number",
   IDS: "Please enter comma-separated numbers",
-  PERMISSIONS: 'Please enter "true" or "false"',
+  AUTHORIZATION: 'Please enter "true" or "false"',
 };
 
 // ------------------------------ AUTH ------------------------------

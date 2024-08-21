@@ -132,9 +132,9 @@ export const includeRepositoryAuth = <
   return async (response: ResponseObject<T>): ResponseObjectWithAuth<T> => {
     const { usrId } = req.user!;
     const { data, metadata } = response;
-    const { permissions } = matchedData(req, { locations: ["query"] });
+    const { authorization } = matchedData(req, { locations: ["query"] });
 
-    if (!permissions || !data || (Array.isArray(data) && !data.length)) {
+    if (!authorization || !data || (Array.isArray(data) && !data.length)) {
       return response;
     }
 
@@ -195,9 +195,9 @@ export const includeRepositorySetAuth = <T>(
   return async (response: ResponseObject<T>): Promise<ResponseObject<T>> => {
     const { usrId } = req.user!;
     const { data, metadata } = response;
-    const { permissions } = matchedData(req, { locations: ["query"] });
+    const { authorization } = matchedData(req, { locations: ["query"] });
 
-    if (!permissions || !data || (Array.isArray(data) && !data.length)) {
+    if (!authorization || !data || (Array.isArray(data) && !data.length)) {
       return response;
     }
 

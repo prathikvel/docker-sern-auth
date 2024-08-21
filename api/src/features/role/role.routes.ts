@@ -6,7 +6,7 @@ import { handlers } from "@/utils/routes.util";
 import {
   isValidId,
   isValidIds,
-  isValidPermissions,
+  isValidAuthorization,
 } from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
@@ -27,7 +27,10 @@ export const roleRouter = express.Router();
 roleRouter.get(
   "/",
   handlers({
-    validation: [checkExact(checkSchema(isValidPermissions)), handleValidation],
+    validation: [
+      checkExact(checkSchema(isValidAuthorization)),
+      handleValidation,
+    ],
     middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoles,
   })
@@ -37,7 +40,7 @@ roleRouter.get(
   "/:id(\\w+)",
   handlers({
     validation: [
-      checkExact([checkSchema(isValidId), checkSchema(isValidPermissions)]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidAuthorization)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),
@@ -49,7 +52,7 @@ roleRouter.get(
   "/:ids([\\w,]+)",
   handlers({
     validation: [
-      checkExact([checkSchema(isValidIds), checkSchema(isValidPermissions)]),
+      checkExact([checkSchema(isValidIds), checkSchema(isValidAuthorization)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),

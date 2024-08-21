@@ -3,7 +3,7 @@ import { checkExact, checkSchema } from "express-validator";
 
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
-import { isValidPermissions } from "@/utils/validator.util";
+import { isValidAuthorization } from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -32,7 +32,7 @@ userPermissionRouter.get(
     validation: [
       checkExact([
         checkSchema(isValidUrpUsrId),
-        checkSchema(isValidPermissions),
+        checkSchema(isValidAuthorization),
       ]),
       handleValidation,
     ],
@@ -47,7 +47,7 @@ userPermissionRouter.get(
     validation: [
       checkExact([
         checkSchema(isValidUrpUsrIds),
-        checkSchema(isValidPermissions),
+        checkSchema(isValidAuthorization),
       ]),
       handleValidation,
     ],
@@ -62,7 +62,7 @@ userPermissionRouter.get(
     validation: [
       checkExact([
         checkSchema(isValidUrpPerId),
-        checkSchema(isValidPermissions),
+        checkSchema(isValidAuthorization),
       ]),
       handleValidation,
     ],
@@ -77,7 +77,7 @@ userPermissionRouter.get(
     validation: [
       checkExact([
         checkSchema(isValidUrpPerIds),
-        checkSchema(isValidPermissions),
+        checkSchema(isValidAuthorization),
       ]),
       handleValidation,
     ],
