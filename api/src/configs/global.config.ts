@@ -67,12 +67,3 @@ export const USER = {
     INVALID_CREDENTIALS: "Invalid user ID and/or password",
   },
 };
-
-// ------------------------- USER-PERMISSION ------------------------
-
-export const USER_PERMISSION = {
-  ERRORS: {
-    URP_USR_ID: "Please enter an integer",
-    URP_PER_ID: "Please enter an integer",
-  },
-};

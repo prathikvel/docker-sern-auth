@@ -1,9 +1,9 @@
 import express from "express";
-import { checkExact, param, query, body } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { USER_PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import { isValidPermissions } from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -14,18 +14,25 @@ import {
   addUserPermission,
   removeUserPermission,
 } from "./user-permission.controller";
+import {
+  isValidUrpUsrId,
+  isValidUrpUsrIds,
+  isValidUrpPerId,
+  isValidUrpPerIds,
+  isValidAddUserPermission,
+} from "./user-permission.validator";
 
 export const userPermissionRouter = express.Router();
 
 // ------------------------------- GET ------------------------------
 
 userPermissionRouter.get(
-  "/users/:urpUsrId(\\d+)",
+  "/users/:urpUsrId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrpUsrId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -35,16 +42,12 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/users/:urpUsrIds([\\d,]+)",
+  "/users/:urpUsrIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("urpUsrIds", USER_PERMISSION.ERRORS.URP_USR_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrpUsrIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -54,12 +57,12 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/permissions/:urpPerId(\\d+)",
+  "/permissions/:urpPerId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrpPerId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -69,16 +72,12 @@ userPermissionRouter.get(
 );
 
 userPermissionRouter.get(
-  "/permissions/:urpPerIds([\\d,]+)",
+  "/permissions/:urpPerIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("urpPerIds", USER_PERMISSION.ERRORS.URP_PER_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrpPerIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -93,10 +92,7 @@ userPermissionRouter.post(
   "/",
   handlers({
     validation: [
-      checkExact([
-        body("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt(),
-        body("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt(),
-      ]),
+      checkExact(checkSchema(isValidAddUserPermission)),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "create"),
@@ -107,13 +103,10 @@ userPermissionRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 userPermissionRouter.delete(
-  "/users/:urpUsrId(\\d+)/permissions/:urpPerId(\\d+)",
+  "/users/:urpUsrId/permissions/:urpPerId",
   handlers({
     validation: [
-      checkExact([
-        param("urpUsrId", USER_PERMISSION.ERRORS.URP_USR_ID).isInt(),
-        param("urpPerId", USER_PERMISSION.ERRORS.URP_PER_ID).isInt(),
-      ]),
+      checkExact([checkSchema(isValidUrpUsrId), checkSchema(isValidUrpPerId)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userPermission", "delete"),

@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import {
   transformToResponse,
@@ -21,7 +22,7 @@ import {
  * Responds with a userPermission with the given `urpUsrId` parameter.
  */
 export const getUserPermissionByUsrId: RequestHandler = (req, res, next) => {
-  const urpUsrId = Number(req.params.urpUsrId);
+  const { urpUsrId } = matchedData(req, { locations: ["params"] });
   findUserPermissionByUsrId(urpUsrId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userPermission"))
@@ -33,7 +34,7 @@ export const getUserPermissionByUsrId: RequestHandler = (req, res, next) => {
  * Responds with userPermissions with the given `urpUsrIds` parameter.
  */
 export const getUserPermissionsByUsrIds: RequestHandler = (req, res, next) => {
-  const urpUsrIds = req.params.urpUsrIds.split(",").filter(Boolean).map(Number);
+  const { urpUsrIds } = matchedData(req, { locations: ["params"] });
   findUserPermissionsByUsrIds(urpUsrIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userPermission"))
@@ -45,7 +46,7 @@ export const getUserPermissionsByUsrIds: RequestHandler = (req, res, next) => {
  * Responds with a userPermission with the given `urpPerId` parameter.
  */
 export const getUserPermissionByPerId: RequestHandler = (req, res, next) => {
-  const urpPerId = Number(req.params.urpPerId);
+  const { urpPerId } = matchedData(req, { locations: ["params"] });
   findUserPermissionByPerId(urpPerId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userPermission"))
@@ -57,7 +58,7 @@ export const getUserPermissionByPerId: RequestHandler = (req, res, next) => {
  * Responds with userPermissions with the given `urpPerIds` parameter.
  */
 export const getUserPermissionsByPerIds: RequestHandler = (req, res, next) => {
-  const urpPerIds = req.params.urpPerIds.split(",").filter(Boolean).map(Number);
+  const { urpPerIds } = matchedData(req, { locations: ["params"] });
   findUserPermissionsByPerIds(urpPerIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userPermission"))
@@ -81,8 +82,8 @@ export const addUserPermission: RequestHandler = (req, res, next) => {
  * the deleted userPermission.
  */
 export const removeUserPermission: RequestHandler = (req, res, next) => {
-  const { urpUsrId, urpPerId } = req.params;
-  deleteUserPermission(Number(urpUsrId), Number(urpPerId))
+  const { urpUsrId, urpPerId } = matchedData(req, { locations: ["params"] });
+  deleteUserPermission(urpUsrId, urpPerId)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));
