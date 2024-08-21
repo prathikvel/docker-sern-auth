@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import { EntitySetName, PermissionTypeName } from "@/configs/global.config";
 import { AuthenticationError, AuthorizationError } from "@/utils/error.util";
@@ -65,8 +66,9 @@ export const handleEntityAuthorization = (
     // entity resolution
     let resEntity = entity;
     if (resEntity === null) {
-      if (!isNaN(Number(req.params.id))) {
-        resEntity = Number(req.params.id);
+      const { id } = matchedData(req, { locations: ["params"] });
+      if (id) {
+        resEntity = id;
       }
     }
 
@@ -125,8 +127,9 @@ export const handleEntitiesAuthorization = (
     // entities resolution
     let resEntities = entities;
     if (resEntities === null) {
-      if (/[\d,]+/.test(req.params.ids)) {
-        resEntities = req.params.ids.split(",").filter(Boolean).map(Number);
+      const { ids } = matchedData(req, { locations: ["params"] });
+      if (ids) {
+        resEntities = ids;
       }
     }
 
