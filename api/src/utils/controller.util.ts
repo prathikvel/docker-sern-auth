@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { matchedData } from "express-validator";
 
 import { EntitySetName } from "@/configs/global.config";
 import { findPermissionTypesByEntity } from "@/features/auth";
@@ -130,11 +131,10 @@ export const includeRepositoryAuth = <
 ) => {
   return async (response: ResponseObject<T>): ResponseObjectWithAuth<T> => {
     const { usrId } = req.user!;
-    const { permissions } = req.query;
     const { data, metadata } = response;
-    const hasPermissions = permissions === "true" || permissions === "1";
+    const { permissions } = matchedData(req, { locations: ["query"] });
 
-    if (!hasPermissions || !data || (Array.isArray(data) && !data.length)) {
+    if (!permissions || !data || (Array.isArray(data) && !data.length)) {
       return response;
     }
 
@@ -194,11 +194,10 @@ export const includeRepositorySetAuth = <T>(
 ) => {
   return async (response: ResponseObject<T>): Promise<ResponseObject<T>> => {
     const { usrId } = req.user!;
-    const { permissions } = req.query;
     const { data, metadata } = response;
-    const hasPermissions = permissions === "true" || permissions === "1";
+    const { permissions } = matchedData(req, { locations: ["query"] });
 
-    if (!hasPermissions || !data || (Array.isArray(data) && !data.length)) {
+    if (!permissions || !data || (Array.isArray(data) && !data.length)) {
       return response;
     }
 
