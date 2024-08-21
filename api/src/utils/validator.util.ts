@@ -18,11 +18,10 @@ export const isValidIds = {
   ids: {
     errorMessage: ERRORS.IDS,
     custom: {
-      options: (value: string) =>
-        value.split(",").every((v) => v && !isNaN(Number(v))),
+      options: (val: string) => val.split(",").every((v) => /^\d+$/.test(v)),
     },
     customSanitizer: {
-      options: (value: string) => value.split(",").map(Number),
+      options: (val: string) => val.split(",").map((v) => parseInt(v, 10)),
     },
     in: "params",
   },
