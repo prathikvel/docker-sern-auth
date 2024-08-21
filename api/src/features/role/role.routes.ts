@@ -1,9 +1,13 @@
 import express from "express";
-import { checkExact, param, query, body } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import {
+  isValidId,
+  isValidIds,
+  isValidPermissions,
+} from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -14,6 +18,7 @@ import {
   editRole,
   removeRole,
 } from "./role.controller";
+import { isValidAddRole, isValidEditRole } from "./role.validator";
 
 export const roleRouter = express.Router();
 
@@ -22,23 +27,17 @@ export const roleRouter = express.Router();
 roleRouter.get(
   "/",
   handlers({
-    validation: [
-      checkExact(query("permissions").isBoolean().optional()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidPermissions)), handleValidation],
     middleware: handleEntitySetAuthorization("role", "read"),
     controller: getRoles,
   })
 );
 
 roleRouter.get(
-  "/:id(\\d+)",
+  "/:id(\\w+)",
   handlers({
     validation: [
-      checkExact([
-        param("id", ROLE.ERRORS.ROL_ID).isInt(),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),
@@ -47,15 +46,10 @@ roleRouter.get(
 );
 
 roleRouter.get(
-  "/:ids([\\d,]+)",
+  "/:ids([\\w,]+)",
   handlers({
     validation: [
-      checkExact([
-        param("ids", ROLE.ERRORS.ROL_ID).custom((value: string) => {
-          return value.split(",").every((v) => v && !isNaN(Number(v)));
-        }),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidIds), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "read"),
@@ -68,10 +62,7 @@ roleRouter.get(
 roleRouter.post(
   "/",
   handlers({
-    validation: [
-      checkExact(body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidAddRole)), handleValidation],
     middleware: handleEntitySetAuthorization("role", "create"),
     controller: addRole,
   })
@@ -80,13 +71,10 @@ roleRouter.post(
 // ------------------------------- PUT ------------------------------
 
 roleRouter.put(
-  "/:id(\\d+)",
+  "/:id",
   handlers({
     validation: [
-      checkExact([
-        param("id", ROLE.ERRORS.ROL_ID).isInt(),
-        body("rolName", ROLE.ERRORS.ROL_NAME).isAlpha().optional(),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidEditRole)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("role", "update"),
@@ -97,12 +85,9 @@ roleRouter.put(
 // ----------------------------- DELETE -----------------------------
 
 roleRouter.delete(
-  "/:id(\\d+)",
+  "/:id",
   handlers({
-    validation: [
-      checkExact(param("id", ROLE.ERRORS.ROL_ID).isInt()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidId)), handleValidation],
     middleware: handleEntitySetAuthorization("role", "delete"),
     controller: removeRole,
   })

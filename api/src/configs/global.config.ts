@@ -50,8 +50,7 @@ export type PermissionTypeName = (typeof PERMISSION.TYPE.NAMES)[number];
 
 export const ROLE = {
   ERRORS: {
-    ROL_ID: "Please enter an integer",
-    ROL_NAME: "Please enter a string that only contains letters",
+    ROL_NAME: "Please enter a name that only contains letters and/or numbers",
   },
 };
 

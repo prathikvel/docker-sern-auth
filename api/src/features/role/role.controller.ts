@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import {
   transformToResponse,
@@ -32,7 +33,7 @@ export const getRoles: RequestHandler = (req, res, next) => {
  * Responds with a role with the given `id` parameter.
  */
 export const getRoleById: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   findRoleById(id)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "role"))
@@ -44,7 +45,7 @@ export const getRoleById: RequestHandler = (req, res, next) => {
  * Responds with roles with the given `ids` parameter.
  */
 export const getRolesByIds: RequestHandler = (req, res, next) => {
-  const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  const { ids } = matchedData(req, { locations: ["params"] });
   findRolesByIds(ids)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "role"))
@@ -68,7 +69,7 @@ export const addRole: RequestHandler = (req, res, next) => {
  * Responds with the edited role.
  */
 export const editRole: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   updateRole(id, req.body)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
@@ -80,7 +81,7 @@ export const editRole: RequestHandler = (req, res, next) => {
  * role.
  */
 export const removeRole: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   deleteRole(id)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
