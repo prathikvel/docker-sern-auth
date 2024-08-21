@@ -85,12 +85,3 @@ export const USER_PERMISSION = {
     URP_PER_ID: "Please enter an integer",
   },
 };
-
-// ---------------------------- USER-ROLE ---------------------------
-
-export const USER_ROLE = {
-  ERRORS: {
-    URL_USR_ID: "Please enter an integer",
-    URL_ROL_ID: "Please enter an integer",
-  },
-};

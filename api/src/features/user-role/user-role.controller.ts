@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import {
   transformToResponse,
@@ -21,7 +22,7 @@ import {
  * Responds with a userRole with the given `urlUsrId` parameter.
  */
 export const getUserRoleByUsrId: RequestHandler = (req, res, next) => {
-  const urlUsrId = Number(req.params.urlUsrId);
+  const { urlUsrId } = matchedData(req, { locations: ["params"] });
   findUserRoleByUsrId(urlUsrId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userRole"))
@@ -33,7 +34,7 @@ export const getUserRoleByUsrId: RequestHandler = (req, res, next) => {
  * Responds with userRoles with the given `urlUsrIds` parameter.
  */
 export const getUserRolesByUsrIds: RequestHandler = (req, res, next) => {
-  const urlUsrIds = req.params.urlUsrIds.split(",").filter(Boolean).map(Number);
+  const { urlUsrIds } = matchedData(req, { locations: ["params"] });
   findUserRolesByUsrIds(urlUsrIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userRole"))
@@ -45,7 +46,7 @@ export const getUserRolesByUsrIds: RequestHandler = (req, res, next) => {
  * Responds with a userRole with the given `urlRolId` parameter.
  */
 export const getUserRoleByRolId: RequestHandler = (req, res, next) => {
-  const urlRolId = Number(req.params.urlRolId);
+  const { urlRolId } = matchedData(req, { locations: ["params"] });
   findUserRoleByRolId(urlRolId)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userRole"))
@@ -57,7 +58,7 @@ export const getUserRoleByRolId: RequestHandler = (req, res, next) => {
  * Responds with userRoles with the given `urlRolIds` parameter.
  */
 export const getUserRolesByRolIds: RequestHandler = (req, res, next) => {
-  const urlRolIds = req.params.urlRolIds.split(",").filter(Boolean).map(Number);
+  const { urlRolIds } = matchedData(req, { locations: ["params"] });
   findUserRolesByRolIds(urlRolIds)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "userRole"))
@@ -81,8 +82,8 @@ export const addUserRole: RequestHandler = (req, res, next) => {
  * deleted userRole.
  */
 export const removeUserRole: RequestHandler = (req, res, next) => {
-  const { urlUsrId, urlRolId } = req.params;
-  deleteUserRole(Number(urlUsrId), Number(urlRolId))
+  const { urlUsrId, urlRolId } = matchedData(req, { locations: ["params"] });
+  deleteUserRole(urlUsrId, urlRolId)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
     .catch(handleRepositoryError(next));

@@ -1,9 +1,9 @@
 import express from "express";
-import { checkExact, param, query, body } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { USER_ROLE } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import { isValidPermissions } from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -14,18 +14,25 @@ import {
   addUserRole,
   removeUserRole,
 } from "./user-role.controller";
+import {
+  isValidUrlUsrId,
+  isValidUrlUsrIds,
+  isValidUrlRolId,
+  isValidUrlRolIds,
+  isValidAddUserRole,
+} from "./user-role.validator";
 
 export const userRoleRouter = express.Router();
 
 // ------------------------------- GET ------------------------------
 
 userRoleRouter.get(
-  "/users/:urlUsrId(\\d+)",
+  "/users/:urlUsrId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrlUsrId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -35,16 +42,12 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/users/:urlUsrIds([\\d,]+)",
+  "/users/:urlUsrIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("urlUsrIds", USER_ROLE.ERRORS.URL_USR_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrlUsrIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -54,12 +57,12 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/roles/:urlRolId(\\d+)",
+  "/roles/:urlRolId(\\w+)",
   handlers({
     validation: [
       checkExact([
-        param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrlRolId),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -69,16 +72,12 @@ userRoleRouter.get(
 );
 
 userRoleRouter.get(
-  "/roles/:urlRolIds([\\d,]+)",
+  "/roles/:urlRolIds([\\w,]+)",
   handlers({
     validation: [
       checkExact([
-        param("urlRolIds", USER_ROLE.ERRORS.URL_ROL_ID).custom(
-          (value: string) => {
-            return value.split(",").every((v) => v && !isNaN(Number(v)));
-          }
-        ),
-        query("permissions").isBoolean().optional(),
+        checkSchema(isValidUrlRolIds),
+        checkSchema(isValidPermissions),
       ]),
       handleValidation,
     ],
@@ -92,13 +91,7 @@ userRoleRouter.get(
 userRoleRouter.post(
   "/",
   handlers({
-    validation: [
-      checkExact([
-        body("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
-        body("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
-      ]),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidAddUserRole)), handleValidation],
     middleware: handleEntitySetAuthorization("userRole", "create"),
     controller: addUserRole,
   })
@@ -107,13 +100,10 @@ userRoleRouter.post(
 // ----------------------------- DELETE -----------------------------
 
 userRoleRouter.delete(
-  "/users/:urlUsrId(\\d+)/roles/:urlRolId(\\d+)",
+  "/users/:urlUsrId/roles/:urlRolId",
   handlers({
     validation: [
-      checkExact([
-        param("urlUsrId", USER_ROLE.ERRORS.URL_USR_ID).isInt(),
-        param("urlRolId", USER_ROLE.ERRORS.URL_ROL_ID).isInt(),
-      ]),
+      checkExact([checkSchema(isValidUrlUsrId), checkSchema(isValidUrlRolId)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("userRole", "delete"),
