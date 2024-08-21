@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import { matchedData } from "express-validator";
 
 import {
   transformToResponse,
@@ -29,7 +30,7 @@ export const getPermissions: RequestHandler = (req, res, next) => {
  * Responds with a permission with the given `id` parameter.
  */
 export const getPermissionById: RequestHandler = (req, res, next) => {
-  const id = Number(req.params.id);
+  const { id } = matchedData(req, { locations: ["params"] });
   findPermissionById(id)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "permission"))
@@ -41,7 +42,7 @@ export const getPermissionById: RequestHandler = (req, res, next) => {
  * Responds with permissions with the given `ids` parameter.
  */
 export const getPermissionsByIds: RequestHandler = (req, res, next) => {
-  const ids = req.params.ids.split(",").filter(Boolean).map(Number);
+  const { ids } = matchedData(req, { locations: ["params"] });
   findPermissionsByIds(ids)
     .then(transformToResponse)
     .then(includeRepositorySetAuth(req, "permission"))

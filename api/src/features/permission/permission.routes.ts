@@ -1,9 +1,13 @@
 import express from "express";
-import { checkExact, param, query } from "express-validator";
+import { checkExact, checkSchema } from "express-validator";
 
-import { PERMISSION } from "@/configs/global.config";
 import { handleValidation } from "@/middlewares/validator.middleware";
 import { handlers } from "@/utils/routes.util";
+import {
+  isValidId,
+  isValidIds,
+  isValidPermissions,
+} from "@/utils/validator.util";
 
 import { handleEntitySetAuthorization } from "../auth";
 import {
@@ -19,23 +23,17 @@ export const permissionRouter = express.Router();
 permissionRouter.get(
   "/",
   handlers({
-    validation: [
-      checkExact(query("permissions").isBoolean().optional()),
-      handleValidation,
-    ],
+    validation: [checkExact(checkSchema(isValidPermissions)), handleValidation],
     middleware: handleEntitySetAuthorization("permission", "read"),
     controller: getPermissions,
   })
 );
 
 permissionRouter.get(
-  "/:id(\\d+)",
+  "/:id(\\w+)",
   handlers({
     validation: [
-      checkExact([
-        param("id", PERMISSION.ERRORS.PER_ID).isInt(),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidId), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("permission", "read"),
@@ -44,15 +42,10 @@ permissionRouter.get(
 );
 
 permissionRouter.get(
-  "/:ids([\\d,]+)",
+  "/:ids([\\w,]+)",
   handlers({
     validation: [
-      checkExact([
-        param("ids", PERMISSION.ERRORS.PER_ID).custom((value: string) => {
-          return value.split(",").every((v) => v && !isNaN(Number(v)));
-        }),
-        query("permissions").isBoolean().optional(),
-      ]),
+      checkExact([checkSchema(isValidIds), checkSchema(isValidPermissions)]),
       handleValidation,
     ],
     middleware: handleEntitySetAuthorization("permission", "read"),
