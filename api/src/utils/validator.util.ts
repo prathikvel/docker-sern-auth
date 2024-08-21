@@ -12,7 +12,7 @@ export const isValidId = {
   },
 } satisfies Schema;
 
-/** The validation schema for an entity's IDs. Sanitizes the IDs to a list of
+/** The validation schema for an entity's IDs. Sanitizes the IDs to an array of
  * integers. */
 export const isValidIds = {
   ids: {

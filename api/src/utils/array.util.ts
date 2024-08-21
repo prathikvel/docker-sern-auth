@@ -1,5 +1,5 @@
 /**
- * A compare function used to sort an array of objects by the list of given
+ * A compare function used to sort an array of objects by the array of given
  * attributes and orders.
  *
  * @param orderBys An array of strings with attributes and orders
