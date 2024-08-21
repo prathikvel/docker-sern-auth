@@ -29,8 +29,8 @@ export const isValidEditUser = {
 
 /** The validation schema to edit a user's password. */
 export const isValidEditPassword = {
-  usrPassword: {
-    errorMessage: USER.ERRORS.CURR_USR_PASSWORD,
+  curUsrPassword: {
+    errorMessage: USER.ERRORS.CUR_USR_PASSWORD,
     notEmpty: true,
     in: "body",
   },

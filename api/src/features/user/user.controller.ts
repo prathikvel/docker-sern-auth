@@ -109,7 +109,7 @@ export const editUser: RequestHandler = (req, res, next) => {
  */
 export const editUserPassword: RequestHandler = async (req, res, next) => {
   const { id } = matchedData(req, { locations: ["params"] });
-  let { usrPassword, newUsrPassword } = req.body;
+  const { curUsrPassword, newUsrPassword } = req.body;
 
   // find given user
   const user = await findUserByIdWithPassword(id);
@@ -118,13 +118,13 @@ export const editUserPassword: RequestHandler = async (req, res, next) => {
   }
 
   // if password matches
-  const match = await bcrypt.compare(usrPassword, user.usrPassword!);
+  const match = await bcrypt.compare(curUsrPassword, user.usrPassword!);
   if (!match) {
     return next(new ClientError(406, USER.ERRORS.INVALID_CREDENTIALS));
   }
 
   // update new password
-  usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
+  const usrPassword = await bcrypt.hash(newUsrPassword, AUTH.PWD_SALT_ROUNDS);
   updateUser(id, { usrPassword })
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))

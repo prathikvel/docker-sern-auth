@@ -96,7 +96,7 @@ userRouter.put(
     const hasOwn = (...props: string[]) => {
       return props.every((v) => Object.hasOwn(req.body, v));
     };
-    return hasOwn("usrPassword", "newUsrPassword") ? next("route") : next();
+    return hasOwn("curUsrPassword", "newUsrPassword") ? next("route") : next();
   }),
 
   handlers({

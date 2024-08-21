@@ -60,7 +60,7 @@ export const USER = {
     USR_PASSWORD:
       "Please enter a password that is at least" +
       ` ${AUTH.PWD_MIN_LENGTH} characters long`,
-    CURR_USR_PASSWORD: "Please enter a password",
+    CUR_USR_PASSWORD: "Please enter a password",
     INVALID_CREDENTIALS: "Invalid user ID and/or password",
   },
 };
