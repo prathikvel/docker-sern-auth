@@ -1,7 +1,8 @@
-import { sql } from "kysely";
+import { Transaction, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { jsonArrayFromExpr } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
@@ -157,6 +158,23 @@ export const createUserRole = async (userRole: NewUserRole) => {
   await db.insertInto("userRole").values(userRole).executeTakeFirstOrThrow();
 
   return findUserRoleById(userRole.urlUsrId, userRole.urlRolId);
+};
+
+/**
+ * Inserts a new userRole in the database with the transaction builder. Throws
+ * a NoResultError and rolls back the transaction if the userRole couldn't be
+ * created.
+ *
+ * @param trx The transaction builder
+ * @param userRole The new userRole to add
+ * @returns The newly created userRole
+ * @throws NoResultError if the userRole was unable to be created
+ */
+export const trxCreateUserRole = (
+  trx: Transaction<Database>,
+  userRole: NewUserRole
+) => {
+  return trx.insertInto("userRole").values(userRole).executeTakeFirstOrThrow();
 };
 
 /**

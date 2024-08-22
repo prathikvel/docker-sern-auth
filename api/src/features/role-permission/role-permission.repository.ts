@@ -1,7 +1,8 @@
-import { sql } from "kysely";
+import { Transaction, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { jsonArrayFromExpr } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
@@ -173,6 +174,26 @@ export const createRolePermission = async (
 
   const { rlpRolId, rlpPerId } = rolePermission;
   return findRolePermissionById(rlpRolId, rlpPerId);
+};
+
+/**
+ * Inserts a new rolePermission in the database with the transaction builder.
+ * Throws a NoResultError and rolls back the transaction if the rolePermission
+ * couldn't be created.
+ *
+ * @param trx The transaction builder
+ * @param rolePermission The new rolePermission to add
+ * @returns The newly created rolePermission
+ * @throws NoResultError if the rolePermission was unable to be created
+ */
+export const trxCreateRolePermission = (
+  trx: Transaction<Database>,
+  rolePermission: NewRolePermission
+) => {
+  return trx
+    .insertInto("rolePermission")
+    .values(rolePermission)
+    .executeTakeFirstOrThrow();
 };
 
 /**

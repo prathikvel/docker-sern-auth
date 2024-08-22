@@ -1,4 +1,7 @@
+import { Transaction } from "kysely";
+
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 import { convertPropForDb, convertPropForJs } from "@/utils/repository.util";
 import { convertCamelToSnake } from "@/utils/string.util";
@@ -83,6 +86,26 @@ export const createEntitySet = async (entitySet: NewEntitySet) => {
     .executeTakeFirstOrThrow();
 
   return findEntitySetById(Number(insertId!));
+};
+
+/**
+ * Inserts a new entitySet in the database with the transaction builder. Throws
+ * a NoResultError and rolls back the transaction if the entitySet couldn't be
+ * created.
+ *
+ * @param trx The transaction builder
+ * @param entitySet The new entitySet to add
+ * @returns The newly created entitySet
+ * @throws NoResultError if the entitySet was unable to be created
+ */
+export const trxCreateEntitySet = (
+  trx: Transaction<Database>,
+  entitySet: NewEntitySet
+) => {
+  return trx
+    .insertInto("entitySet")
+    .values(convertPropForDb(entitySet, "setName"))
+    .executeTakeFirstOrThrow();
 };
 
 /**

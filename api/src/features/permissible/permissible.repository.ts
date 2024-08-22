@@ -1,4 +1,7 @@
+import { Transaction } from "kysely";
+
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 
 import {
   Permissible,
@@ -33,6 +36,26 @@ export const createPermissible = async (permissible: NewPermissible = {}) => {
     .executeTakeFirstOrThrow();
 
   return { pblId: Number(insertId!) } as Permissible;
+};
+
+/**
+ * Inserts a new permissible in the database with the transaction builder.
+ * Throws a NoResultError and rolls back the transaction if the permissible
+ * couldn't be created.
+ *
+ * @param trx The transaction builder
+ * @param permissible The new permissible to add
+ * @returns The newly created permissible
+ * @throws NoResultError if the permissible was unable to be created
+ */
+export const trxCreatePermissible = (
+  trx: Transaction<Database>,
+  permissible: NewPermissible
+) => {
+  return trx
+    .insertInto("permissible")
+    .values(permissible)
+    .executeTakeFirstOrThrow();
 };
 
 /**

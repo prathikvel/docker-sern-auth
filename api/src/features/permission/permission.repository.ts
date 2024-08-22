@@ -1,4 +1,7 @@
+import { Transaction } from "kysely";
+
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { ResponseObject } from "@/utils/controller.util";
 import { pick } from "@/utils/object.util";
 import {
@@ -178,6 +181,26 @@ export const createPermission = async (permission: NewPermission) => {
     .executeTakeFirstOrThrow();
 
   return findPermissionById(Number(insertId!));
+};
+
+/**
+ * Inserts a new permission in the database with the transaction builder. Throws
+ * a NoResultError and rolls back the transaction if the permission couldn't be
+ * created.
+ *
+ * @param trx The transaction builder
+ * @param permission The new permission to add
+ * @returns The newly created permission
+ * @throws NoResultError if the permission was unable to be created
+ */
+export const trxCreatePermission = (
+  trx: Transaction<Database>,
+  permission: NewPermission
+) => {
+  return trx
+    .insertInto("permission")
+    .values(convertPropForDb(permission, "perSet"))
+    .executeTakeFirstOrThrow();
 };
 
 /**

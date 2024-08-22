@@ -1,7 +1,8 @@
-import { sql } from "kysely";
+import { Transaction, sql } from "kysely";
 import { jsonArrayFrom } from "kysely/helpers/mysql";
 
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { jsonArrayFromExpr } from "@/utils/database.util";
 import { pick } from "@/utils/object.util";
 
@@ -173,6 +174,26 @@ export const createUserPermission = async (
 
   const { urpUsrId, urpPerId } = userPermission;
   return findUserPermissionById(urpUsrId, urpPerId);
+};
+
+/**
+ * Inserts a new userPermission in the database with the transaction builder.
+ * Throws a NoResultError and rolls back the transaction if the userPermission
+ * couldn't be created.
+ *
+ * @param trx The transaction builder
+ * @param userPermission The new userPermission to add
+ * @returns The newly created userPermission
+ * @throws NoResultError if the userPermission was unable to be created
+ */
+export const trxCreateUserPermission = (
+  trx: Transaction<Database>,
+  userPermission: NewUserPermission
+) => {
+  return trx
+    .insertInto("userPermission")
+    .values(userPermission)
+    .executeTakeFirstOrThrow();
 };
 
 /**

@@ -1,4 +1,7 @@
+import { Transaction } from "kysely";
+
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
 import { User, NewUser, UserUpdate } from "./user.model";
@@ -106,6 +109,19 @@ export const createUser = async (user: NewUser) => {
   await db.insertInto("user").values(user).executeTakeFirstOrThrow();
 
   return findUserById(user.usrId);
+};
+
+/**
+ * Inserts a new user in the database with the transaction builder. Throws a
+ * NoResultError and rolls back the transaction if the user couldn't be created.
+ *
+ * @param trx The transaction builder
+ * @param user The new user to add
+ * @returns The newly created user
+ * @throws NoResultError if the user was unable to be created
+ */
+export const trxCreateUser = (trx: Transaction<Database>, user: NewUser) => {
+  return trx.insertInto("user").values(user).executeTakeFirstOrThrow();
 };
 
 /**

@@ -1,4 +1,7 @@
+import { Transaction } from "kysely";
+
 import { db } from "@/configs/database.config";
+import { Database } from "@/models";
 import { pick } from "@/utils/object.util";
 
 import { Role, NewRole, RoleUpdate } from "./role.model";
@@ -82,6 +85,19 @@ export const createRole = async (role: NewRole) => {
     .executeTakeFirstOrThrow();
 
   return findRoleById(Number(insertId!));
+};
+
+/**
+ * Inserts a new role in the database with the transaction builder. Throws a
+ * NoResultError and rolls back the transaction if the role couldn't be created.
+ *
+ * @param trx The transaction builder
+ * @param role The new role to add
+ * @returns The newly created role
+ * @throws NoResultError if the role was unable to be created
+ */
+export const trxCreateRole = (trx: Transaction<Database>, role: NewRole) => {
+  return trx.insertInto("role").values(role).executeTakeFirstOrThrow();
 };
 
 /**
