@@ -12,7 +12,6 @@ import {
 } from "@/utils/controller.util";
 import { ClientError } from "@/utils/error.util";
 
-import { createPermissible, deletePermissible } from "../permissible";
 import { generateEntityPermissions } from "../permission";
 import {
   findUserById,
@@ -75,18 +74,23 @@ export const addUser: RequestHandler = async (req, res, next) => {
   let { usrPassword } = req.body;
   usrPassword = await bcrypt.hash(usrPassword, AUTH.PWD_SALT_ROUNDS);
 
-  const { pblId: usrId } = await createPermissible();
-  createUser({ usrId, ...req.body, usrPassword })
-    .then(transformToResponse)
-    .then(async (response) => {
-      const permissions = await generateEntityPermissions("user", usrId);
-      for (const permission of permissions) {
-        if (permission) {
-          createUserPermission({ urpUsrId: usrId, urpPerId: permission.perId });
+  createUser({ ...req.body, usrPassword })
+    .then(async (data) => {
+      if (data) {
+        const { usrId } = data;
+
+        const permissions = await generateEntityPermissions("user", usrId);
+        for (const permission of permissions) {
+          if (permission) {
+            const { perId } = permission;
+            await createUserPermission({ urpUsrId: usrId, urpPerId: perId });
+          }
         }
       }
-      return response;
+
+      return data;
     })
+    .then(transformToResponse)
     .then(respondRepository(res, { status: 201 }))
     .catch(handleRepositoryError(next));
 };
@@ -140,6 +144,5 @@ export const removeUser: RequestHandler = (req, res, next) => {
   deleteUser(id)
     .then(transformToResponse)
     .then(respondRepositoryOrThrow(res))
-    .then(() => deletePermissible(id))
     .catch(handleRepositoryError(next));
 };

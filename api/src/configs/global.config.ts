@@ -20,7 +20,6 @@ export const AUTH = {
 export const ENTITY_SET = {
   NAMES: [
     "entitySet",
-    "permissible",
     "user",
     "role",
     "userRole",

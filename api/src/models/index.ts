@@ -1,5 +1,4 @@
 import { EntitySetTable } from "@/features/entity-set";
-import { PermissibleTable } from "@/features/permissible";
 import { PermissionTypeTable, PermissionTable } from "@/features/permission";
 import { RoleTable } from "@/features/role";
 import { RolePermissionTable } from "@/features/role-permission";
@@ -9,7 +8,6 @@ import { UserRoleTable } from "@/features/user-role";
 
 export interface Database {
   entitySet: EntitySetTable;
-  permissible: PermissibleTable;
   user: UserTable;
   role: RoleTable;
   userRole: UserRoleTable;

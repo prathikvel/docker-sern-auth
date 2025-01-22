@@ -106,9 +106,12 @@ export const findUsersByIds = (ids: number[]) => {
  * @throws NoResultError if the user was unable to be created
  */
 export const createUser = async (user: NewUser) => {
-  await db.insertInto("user").values(user).executeTakeFirstOrThrow();
+  const { insertId } = await db
+    .insertInto("user")
+    .values(user)
+    .executeTakeFirstOrThrow();
 
-  return findUserById(user.usrId);
+  return findUserById(Number(insertId!));
 };
 
 /**
